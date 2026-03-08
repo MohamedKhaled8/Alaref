@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "654816823925",
+    "project_id": "alaref-6fa81",
+    "storage_bucket": "alaref-6fa81.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:654816823925:android:99021f7e074594351c063c",
+        "android_client_info": {
+          "package_name": "com.example.alaref"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTtoBMHDHrY38EwTkdsHQxqaxgBULHd2s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+

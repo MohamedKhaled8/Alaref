@@ -1,0 +1,34 @@
+[√] Flutter (Channel stable, 3.41.2, on Microsoft Windows [Version 10.0.26200.7840], locale en-US) [717ms]
+    • Flutter version 3.41.2 on channel stable at C:\src\flutter
+    • Upstream repository https://github.com/flutter/flutter.git
+    • Framework revision 90673a4eef (2 weeks ago), 2026-02-18 13:54:59 -0800
+    • Engine revision 6c0baaebf7
+    • Dart version 3.11.0
+    • DevTools version 2.54.1
+    • Feature flags: enable-web, enable-linux-desktop, enable-macos-desktop, enable-windows-desktop, enable-android, enable-ios, cli-animations, enable-native-assets, omit-legacy-version-file, enable-lldb-debugging, enable-uiscene-migration
+
+[√] Windows Version (Windows 11 or higher, 25H2, 2009) [3.1s]
+
+[☠] Android toolchain - develop for Android devices (the doctor check crashed)
+    X Due to an error, the doctor check did not complete. If the error message below is not helpful, please let us know about this issue at https://github.com/flutter/flutter/issues.
+    X Exception: Android toolchain - develop for Android devices exceeded maximum allowed duration of 0:04:30.000000
+    • 
+
+[√] Chrome - develop for the web [37ms]
+    • Chrome at C:\Program Files\Google\Chrome\Application\chrome.exe
+
+[X] Visual Studio - develop Windows apps [34ms]
+    X Visual Studio not installed; this is necessary to develop Windows apps.
+      Download at https://visualstudio.microsoft.com/downloads/.
+      Please install the "Desktop development with C++" workload, including all of its default components
+
+[√] Connected device (3 available) [1,752ms]
+    • Windows (desktop) • windows • windows-x64    • Microsoft Windows [Version 10.0.26200.7840]
+    • Chrome (web)      • chrome  • web-javascript • Google Chrome 145.0.7632.160
+    • Edge (web)        • edge    • web-javascript • Microsoft Edge 145.0.3800.82
+    ! Device emulator-5554 is offline.
+
+[√] Network resources [1,829ms]
+    • All expected network resources are available.
+
+! Doctor found issues in 2 categories.
