@@ -678,16 +678,19 @@ class _ExamTakingScreenState extends State<ExamTakingScreen>
                                 ),
                                 const SizedBox(height: 16),
                               ],
-                              // Question text
-                              Text(
-                                q.questionText,
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                  color: _darkText,
-                                  height: 1.6,
+                              // Question text — only for text-based questions
+                              // For image questions (imageMcq/imageEssay), the image IS the question
+                              if (q.type == QuestionType.textMcq ||
+                                  q.type == QuestionType.mixed)
+                                Text(
+                                  q.questionText,
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.bold,
+                                    color: _darkText,
+                                    height: 1.6,
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         ),
