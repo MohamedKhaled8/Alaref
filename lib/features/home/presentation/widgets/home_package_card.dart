@@ -43,7 +43,15 @@ class HomePackageCard extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.network(imageUrl, fit: BoxFit.cover),
+                if (imageUrl.startsWith('http'))
+                  Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) =>
+                        Container(color: Colors.black87),
+                  )
+                else
+                  Container(color: Colors.black87),
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(

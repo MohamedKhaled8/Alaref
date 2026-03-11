@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'icon_circle_button.dart';
 
 class HomeWelcomeHeader extends StatelessWidget {
@@ -48,14 +50,57 @@ class HomeWelcomeHeader extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  const Text(
-                    'طالبنا البطل 🌟',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A1D2E),
-                      letterSpacing: -0.3,
-                    ),
+                  Row(
+                    children: [
+                      StreamBuilder<DocumentSnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(FirebaseAuth.instance.currentUser?.uid)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          final user = FirebaseAuth.instance.currentUser;
+                          if (user == null) {
+                            return const Text(
+                              'طالبنا البطل',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1A1D2E),
+                                letterSpacing: -0.3,
+                              ),
+                            );
+                          }
+
+                          String name = user.displayName ?? 'طالبنا';
+                          if (snapshot.hasData && snapshot.data!.exists) {
+                            final data =
+                                snapshot.data!.data() as Map<String, dynamic>?;
+                            if (data != null &&
+                                data['name'] != null &&
+                                data['name'].toString().trim().isNotEmpty) {
+                              name = data['name'];
+                            }
+                          }
+                          // Get first name for display, avoiding empty strings
+                          final trimmedName = name.trim();
+                          final firstName = trimmedName.isNotEmpty
+                              ? trimmedName.split(' ').first
+                              : 'طالبنا';
+
+                          return Text(
+                            firstName,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1A1D2E),
+                              letterSpacing: -0.3,
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      const _AnimatedHand(),
+                    ],
                   ),
                 ],
               ),
@@ -76,6 +121,44 @@ class HomeWelcomeHeader extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _AnimatedHand extends StatefulWidget {
+  const _AnimatedHand();
+
+  @override
+  State<_AnimatedHand> createState() => _AnimatedHandState();
+}
+
+class _AnimatedHandState extends State<_AnimatedHand>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RotationTransition(
+      turns: Tween(
+        begin: -0.05,
+        end: 0.1,
+      ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut)),
+      child: const Text('👋', style: TextStyle(fontSize: 18)),
     );
   }
 }

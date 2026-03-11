@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
 class HomeTodayProgress extends StatelessWidget {
-  final Animation<double> progressAnimation;
-
-  const HomeTodayProgress({super.key, required this.progressAnimation});
+  const HomeTodayProgress({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -62,19 +60,23 @@ class HomeTodayProgress extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  AnimatedBuilder(
-                    animation: progressAnimation,
-                    builder: (_, __) => ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: LinearProgressIndicator(
-                        value: progressAnimation.value,
-                        minHeight: 6,
-                        backgroundColor: Colors.white.withOpacity(0.3),
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          Colors.white,
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0, end: 0.4), // 2/5 -> 40%
+                    duration: const Duration(milliseconds: 1200),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, child) {
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: LinearProgressIndicator(
+                          value: value,
+                          minHeight: 6,
+                          backgroundColor: Colors.white.withOpacity(0.3),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ],
               ),

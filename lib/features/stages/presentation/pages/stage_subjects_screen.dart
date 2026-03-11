@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:alaref/core/utils/enums/stage.dart';
-import 'package:alaref/core/widgets/shared_widgets.dart';
+import '../cubit/stage_subjects_cubit.dart';
 
 // ============================================
 // STAGE SUBJECTS SCREEN - مواد داخل المرحلة
 // ============================================
-class StageSubjectsScreen extends StatefulWidget {
+class StageSubjectsScreen extends StatelessWidget {
   final Stage stage;
   final String stageName;
 
@@ -14,16 +15,6 @@ class StageSubjectsScreen extends StatefulWidget {
     required this.stage,
     required this.stageName,
   });
-
-  @override
-  State<StageSubjectsScreen> createState() => _StageSubjectsScreenState();
-}
-
-class _StageSubjectsScreenState extends State<StageSubjectsScreen>
-    with TickerProviderStateMixin {
-  int _visibleCount = 0;
-  late AnimationController _progressController;
-  late Animation<double> _progressAnimation;
 
   static const List<Map<String, dynamic>> _subjects = [
     {
@@ -89,31 +80,31 @@ class _StageSubjectsScreenState extends State<StageSubjectsScreen>
       _subjects.fold(0, (s, e) => s + (e['done'] as int));
 
   @override
-  void initState() {
-    super.initState();
-    _progressController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => StageSubjectsCubit(_subjects.length),
+      child: _StageSubjectsView(
+        stageName: stageName,
+        completedVideos: _completedVideos,
+        totalVideos: _totalVideos,
+        subjects: _subjects,
+      ),
     );
-    final progressValue = _totalVideos > 0
-        ? _completedVideos / _totalVideos
-        : 0.0;
-    _progressAnimation = Tween<double>(begin: 0, end: progressValue).animate(
-      CurvedAnimation(parent: _progressController, curve: Curves.easeOutCubic),
-    );
-    _progressController.forward();
-    for (int i = 0; i < _subjects.length; i++) {
-      Future.delayed(Duration(milliseconds: 150 + (i * 85)), () {
-        if (mounted) setState(() => _visibleCount = i + 1);
-      });
-    }
   }
+}
 
-  @override
-  void dispose() {
-    _progressController.dispose();
-    super.dispose();
-  }
+class _StageSubjectsView extends StatelessWidget {
+  final String stageName;
+  final int completedVideos;
+  final int totalVideos;
+  final List<Map<String, dynamic>> subjects;
+
+  const _StageSubjectsView({
+    required this.stageName,
+    required this.completedVideos,
+    required this.totalVideos,
+    required this.subjects,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +136,7 @@ class _StageSubjectsScreenState extends State<StageSubjectsScreen>
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'المرحلة ${widget.stageName}',
+          'المرحلة $stageName',
           style: const TextStyle(
             color: Color(0xFF212121),
             fontSize: 18,
@@ -161,9 +152,8 @@ class _StageSubjectsScreenState extends State<StageSubjectsScreen>
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               child: _StudentProgressCard(
-                completed: _completedVideos,
-                total: _totalVideos,
-                progressAnimation: _progressAnimation,
+                completed: completedVideos,
+                total: totalVideos,
               ),
             ),
           ),
@@ -190,39 +180,44 @@ class _StageSubjectsScreenState extends State<StageSubjectsScreen>
               ),
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final subject = _subjects[index];
-                final visible = index < _visibleCount;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _SubjectRowCard(
-                    visible: visible,
-                    index: index,
-                    title: subject['title'] as String,
-                    icon: subject['icon'] as IconData,
-                    color: subject['color'] as Color,
-                    done: subject['done'] as int,
-                    total: subject['total'] as int,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '${subject['title']} — ${subject['done']} من ${subject['total']} فيديو',
-                          ),
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              }, childCount: _subjects.length),
-            ),
+          BlocBuilder<StageSubjectsCubit, StageSubjectsState>(
+            builder: (context, state) {
+              final visibleCount = state.visibleCount;
+              return SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final subject = subjects[index];
+                    final visible = index < visibleCount;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _SubjectRowCard(
+                        visible: visible,
+                        index: index,
+                        title: subject['title'] as String,
+                        icon: subject['icon'] as IconData,
+                        color: subject['color'] as Color,
+                        done: subject['done'] as int,
+                        total: subject['total'] as int,
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '${subject['title']} — ${subject['done']} من ${subject['total']} فيديو',
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  }, childCount: subjects.length),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -234,16 +229,12 @@ class _StageSubjectsScreenState extends State<StageSubjectsScreen>
 class _StudentProgressCard extends StatelessWidget {
   final int completed;
   final int total;
-  final Animation<double> progressAnimation;
 
-  const _StudentProgressCard({
-    required this.completed,
-    required this.total,
-    required this.progressAnimation,
-  });
+  const _StudentProgressCard({required this.completed, required this.total});
 
   @override
   Widget build(BuildContext context) {
+    final progressValue = total > 0 ? completed / total : 0.0;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       padding: const EdgeInsets.all(20),
@@ -329,11 +320,13 @@ class _StudentProgressCard extends StatelessWidget {
           const SizedBox(height: 18),
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: AnimatedBuilder(
-              animation: progressAnimation,
-              builder: (context, child) {
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0.0, end: progressValue),
+              duration: const Duration(milliseconds: 1400),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, child) {
                 return LinearProgressIndicator(
-                  value: progressAnimation.value,
+                  value: value,
                   minHeight: 10,
                   backgroundColor: Colors.white.withOpacity(0.3),
                   valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
@@ -348,7 +341,7 @@ class _StudentProgressCard extends StatelessWidget {
 }
 
 // ——— كارت مادة واحد (صف أفقي + شريط تقدم مصغّر) ———
-class _SubjectRowCard extends StatefulWidget {
+class _SubjectRowCard extends StatelessWidget {
   final bool visible;
   final int index;
   final String title;
@@ -370,143 +363,99 @@ class _SubjectRowCard extends StatefulWidget {
   });
 
   @override
-  State<_SubjectRowCard> createState() => _SubjectRowCardState();
-}
-
-class _SubjectRowCardState extends State<_SubjectRowCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _tapController;
-  late Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _tapController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 120),
-    );
-    _scale = Tween<double>(
-      begin: 1,
-      end: 0.98,
-    ).animate(CurvedAnimation(parent: _tapController, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _tapController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final progress = widget.total > 0 ? widget.done / widget.total : 0.0;
+    final progress = total > 0 ? done / total : 0.0;
     return AnimatedOpacity(
-      opacity: widget.visible ? 1 : 0,
-      duration: Duration(milliseconds: 350 + (widget.index * 40)),
+      opacity: visible ? 1 : 0,
+      duration: Duration(milliseconds: 350 + (index * 40)),
       child: AnimatedSlide(
-        offset: widget.visible ? Offset.zero : const Offset(0.15, 0),
-        duration: Duration(milliseconds: 400 + (widget.index * 50)),
+        offset: visible ? Offset.zero : const Offset(0.15, 0),
+        duration: Duration(milliseconds: 400 + (index * 50)),
         curve: Curves.easeOutCubic,
-        child: ScaleTransition(
-          scale: _scale,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                _tapController.forward().then((_) {
-                  _tapController.reverse();
-                  widget.onTap();
-                });
-              },
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 16,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: widget.color.withOpacity(0.2),
-                    width: 1,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: color.withOpacity(0.2), width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withOpacity(0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: widget.color.withOpacity(0.08),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: widget.color.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(widget.icon, color: widget.color, size: 26),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.title,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF212121),
-                            ),
+                    child: Icon(icon, color: color, size: 26),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF212121),
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 4,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(6),
-                                  child: LinearProgressIndicator(
-                                    value: progress,
-                                    minHeight: 6,
-                                    backgroundColor: widget.color.withOpacity(
-                                      0.15,
-                                    ),
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      widget.color,
-                                    ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 4,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(6),
+                                child: LinearProgressIndicator(
+                                  value: progress,
+                                  minHeight: 6,
+                                  backgroundColor: color.withOpacity(0.15),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    color,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              Text(
-                                '${widget.done}/${widget.total}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey[600],
-                                ),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              '$done/$total',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      size: 18,
-                      color: Colors.grey[400],
-                    ),
-                  ],
-                ),
+                  ),
+                  Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 18,
+                    color: Colors.grey[400],
+                  ),
+                ],
               ),
             ),
           ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:alaref/core/Router/routes.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -190,7 +192,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   color: Colors.red.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(16),
                   child: InkWell(
-                    onTap: () {},
+                    onTap: () async {
+                      await FirebaseAuth.instance.signOut();
+                      if (context.mounted) {
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          Routes.loginPage,
+                          (route) => false,
+                        );
+                      }
+                    },
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 16),

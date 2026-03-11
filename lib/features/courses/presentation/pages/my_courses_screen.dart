@@ -1,20 +1,14 @@
-import 'package:alaref/features/home/presentation/pages/home_screen.dart';
-import 'package:alaref/features/home/presentation/widgets/home_course_horizontal_card.dart';
-import 'package:alaref/features/home/presentation/widgets/home_package_card.dart';
 import 'package:flutter/material.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:alaref/features/admin/dashBoard/data/models/lesson_model.dart';
+import 'package:alaref/features/home/presentation/widgets/home_lesson_horizontal_card.dart';
 
 // ============================================
-// MY COURSES SCREEN - مراحل دراسية + أنيميشن
+// MY COURSES SCREEN - الباقات
 // ============================================
-class MyCoursesScreen extends StatefulWidget {
+class MyCoursesScreen extends StatelessWidget {
   const MyCoursesScreen({super.key});
 
-  @override
-  State<MyCoursesScreen> createState() => _MyCoursesScreenState();
-}
-
-class _MyCoursesScreenState extends State<MyCoursesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,13 +29,13 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFF9800).withOpacity(0.1),
+                        color: const Color(0xFF335EF7).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Text(
-                        'عرض خاص لفترة محدودة',
+                        'عروض مخصصة لك',
                         style: TextStyle(
-                          color: Color(0xFFFF9800),
+                          color: Color(0xFF335EF7),
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
@@ -49,7 +43,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'باقاتنا المتكاملة',
+                      'الباقات المتكاملة',
                       style: TextStyle(
                         fontSize: 30,
                         fontWeight: FontWeight.bold,
@@ -58,7 +52,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'كل ما تحتاجه للنجاح في مكان واحد وبسعر أقل',
+                      'اكتشف باقاتك وارتقِ بمستواك',
                       style: TextStyle(
                         fontSize: 15,
                         color: Colors.grey[600],
@@ -71,217 +65,121 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
             ),
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(22, 16, 22, 24),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  const HomePackageCard(
-                    title: 'باقة الفصل الأول كاملة',
-                    subtitle: 'جميع محاضرات الفصل الأول + المذكرات',
-                    price: '٤٥٠ ج.م',
-                    oldPrice: '٦٠٠ ج.م',
-                    gradient: [Color(0xFF335EF7), Color(0xFF5B7AFF)],
-                    imageUrl:
-                        'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=400&auto=format&fit=crop',
-                  ),
-                  const SizedBox(height: 16),
-                  const HomePackageCard(
-                    title: 'باقة المراجعة النهائية',
-                    subtitle: '١٠ محاضرات مكثفة + بنك الأسئلة',
-                    price: '٣٠٠ ج.م',
-                    oldPrice: '٤٥٠ ج.م',
-                    gradient: [Color(0xFFE91E63), Color(0xFFFF4081)],
-                    imageUrl:
-                        'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=400&auto=format&fit=crop',
-                  ),
-                  const SizedBox(height: 16),
-                  const HomePackageCard(
-                    title: 'باقة الامتحانات الشاملة',
-                    subtitle: '٥٠ امتحان تفاعلي مع التصحيح التلقائي',
-                    price: '١٥٠ ج.م',
-                    oldPrice: '٢٥٠ ج.م',
-                    gradient: [Color(0xFFFF9800), Color(0xFFFFB74D)],
-                    imageUrl:
-                        'https://images.unsplash.com/photo-1523050335392-93851179ae09?q=80&w=400&auto=format&fit=crop',
-                  ),
-                  const SizedBox(height: 40),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'أهم الكورسات المقترحة',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1A1D2E),
+              sliver: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: FirebaseFirestore.instance
+                    .collection('lessons')
+                    .orderBy('createdAt', descending: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const SliverToBoxAdapter(
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+                  if (snapshot.hasError) {
+                    return SliverToBoxAdapter(
+                      child: Center(
+                        child: Text(
+                          'حدث خطأ ما',
+                          style: TextStyle(color: Colors.red[400]),
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text('رؤية المزيد'),
+                    );
+                  }
+
+                  final packages =
+                      snapshot.data?.docs
+                          .map((d) => LessonModel.fromMap(d.data(), d.id))
+                          .where((l) => l.isActive && l.isPackage)
+                          .toList() ??
+                      [];
+
+                  if (packages.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 40),
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 60,
+                          horizontal: 20,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.03),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          duration: const Duration(seconds: 1),
+                          curve: Curves.easeOutBack,
+                          builder: (context, value, child) {
+                            return Opacity(
+                              opacity: value.clamp(0.0, 1.0),
+                              child: Transform.scale(
+                                scale: 0.8 + (value * 0.2),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(24),
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFFF0F2FF),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.card_giftcard_rounded,
+                                        size: 50,
+                                        color: Color(0xFF335EF7),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    const Text(
+                                      'لا توجد باقات حالياً',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1A1D2E),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'ترقبوا أقوى الباقات قريباً جداً 🚀\nنحن نعمل على إعداد مفاجآت رائعة لكم!',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[500],
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const HomeCourseHorizontalCard(
-                    title: 'المحاضرة الثالثة',
-                    category: 'نحو',
-                    lessons: '١٢ درس',
-                    instructor: 'أ. عمرو العارف',
-                    progress: 0.65,
-                    imageUrl:
-                        'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=600&auto=format&fit=crop',
-                  ),
-                  const SizedBox(height: 16),
-                  const HomeCourseHorizontalCard(
-                    title: 'مراجعة البلاغة',
-                    category: 'بلاغة',
-                    lessons: '٨ دروس',
-                    instructor: 'أ. عمرو العارف',
-                    progress: 0.15,
-                    imageUrl:
-                        'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=600&auto=format&fit=crop',
-                  ),
-                ]),
+                    );
+                  }
+
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: HomeLessonHorizontalCard(
+                          lesson: packages[index],
+                        ),
+                      );
+                    }, childCount: packages.length),
+                  );
+                },
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StageCard extends StatefulWidget {
-  final int index;
-  final bool visible;
-  final String stageName;
-  final String subtitle;
-  final IconData icon;
-  final List<Color> gradient;
-  final VoidCallback onTap;
-
-  const _StageCard({
-    required this.index,
-    required this.visible,
-    required this.stageName,
-    required this.subtitle,
-    required this.icon,
-    required this.gradient,
-    required this.onTap,
-  });
-
-  @override
-  State<_StageCard> createState() => _StageCardState();
-}
-
-class _StageCardState extends State<_StageCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
-    );
-    _scale = Tween<double>(
-      begin: 1.0,
-      end: 0.97,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      opacity: widget.visible ? 1 : 0,
-      duration: const Duration(milliseconds: 400),
-      child: AnimatedSlide(
-        offset: widget.visible ? Offset.zero : const Offset(0, 0.25),
-        duration: const Duration(milliseconds: 450),
-        curve: Curves.easeOutCubic,
-        child: ScaleTransition(
-          scale: _scale,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                _controller.forward().then((_) {
-                  _controller.reverse();
-                  widget.onTap();
-                });
-              },
-              borderRadius: BorderRadius.circular(24),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 22,
-                  vertical: 20,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: widget.gradient,
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: widget.gradient.first.withOpacity(0.35),
-                      blurRadius: 16,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.25),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(widget.icon, color: Colors.white, size: 32),
-                    ),
-                    const SizedBox(width: 18),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.stageName,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            widget.subtitle,
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white.withOpacity(0.9),
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
         ),
       ),
     );

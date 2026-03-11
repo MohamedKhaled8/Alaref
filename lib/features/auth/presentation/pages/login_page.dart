@@ -26,7 +26,7 @@ class LoginPage extends StatelessWidget {
             if (state.user.email == 'admin@admin.com') {
               context.pushNamed(Routes.adminDashboard);
             } else {
-              context.pushNamed(Routes.homeScreen);
+              context.pushNamed(Routes.bottomNavBar);
             }
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(

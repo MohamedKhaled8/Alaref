@@ -1,60 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:alaref/core/utils/enums/stage.dart';
+import '../cubit/stages_cubit.dart';
 import 'stage_subjects_screen.dart';
 
 // ============================================
 // OTHER SCREENS
 // ============================================
-class StagesScreen extends StatefulWidget {
+class StagesScreen extends StatelessWidget {
   const StagesScreen({super.key});
 
   @override
-  State<StagesScreen> createState() => _StagesScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => StagesCubit()..startEntranceAnimation(),
+      child: const _StagesScreenView(),
+    );
+  }
 }
 
-class _StagesScreenState extends State<StagesScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _headerController;
-  late Animation<double> _headerOpacity;
-  late Animation<Offset> _headerSlide;
-  int _visibleCount = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _headerController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-    _headerOpacity = CurvedAnimation(
-      parent: _headerController,
-      curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-    );
-    _headerSlide = Tween<Offset>(begin: const Offset(0, -0.2), end: Offset.zero)
-        .animate(
-          CurvedAnimation(
-            parent: _headerController,
-            curve: const Interval(0.0, 0.8, curve: Curves.easeOutCubic),
-          ),
-        );
-
-    _headerController.forward();
-    _runEntranceAnimation();
-  }
-
-  void _runEntranceAnimation() {
-    for (int i = 0; i < 3; i++) {
-      Future.delayed(Duration(milliseconds: 300 + (i * 200)), () {
-        if (mounted) setState(() => _visibleCount = i + 1);
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _headerController.dispose();
-    super.dispose();
-  }
+class _StagesScreenView extends StatelessWidget {
+  const _StagesScreenView();
 
   @override
   Widget build(BuildContext context) {
@@ -80,106 +46,130 @@ class _StagesScreenState extends State<StagesScreen>
             ),
           ),
           SafeArea(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                SliverToBoxAdapter(
-                  child: SlideTransition(
-                    position: _headerSlide,
-                    child: FadeTransition(
-                      opacity: _headerOpacity,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(28, 40, 28, 10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF335EF7).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Text(
-                                'مستقبلك يبدأ من هنا',
-                                style: TextStyle(
-                                  color: Color(0xFF335EF7),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                  letterSpacing: 0.5,
+            child: BlocBuilder<StagesCubit, StagesState>(
+              builder: (context, state) {
+                final _visibleCount = state.visibleCount;
+                return CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.0, end: 1.0),
+                        duration: const Duration(milliseconds: 800),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, value, child) {
+                          return Opacity(
+                            opacity: (value * 1.5).clamp(0.0, 1.0),
+                            child: Transform.translate(
+                              offset: Offset(0, -20 * (1 - value)),
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(28, 40, 28, 10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                    0xFF335EF7,
+                                  ).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Text(
+                                  'مستقبلك يبدأ من هنا',
+                                  style: TextStyle(
+                                    color: Color(0xFF335EF7),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                    letterSpacing: 0.5,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'المراحل الدراسية',
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1A1D2E),
-                                letterSpacing: -0.5,
+                              const SizedBox(height: 16),
+                              const Text(
+                                'المراحل الدراسية',
+                                style: TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1A1D2E),
+                                  letterSpacing: -0.5,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'اختر طريقك التعليمي للوصول إلى القمة',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey[600],
-                                height: 1.4,
+                              const SizedBox(height: 8),
+                              Text(
+                                'اختر طريقك التعليمي للوصول إلى القمة',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[600],
+                                  height: 1.4,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      _PremiumStageCard(
-                        index: 0,
-                        visible: _visibleCount > 0,
-                        title: 'المرحلة الابتدائية',
-                        desc: 'تأسيس قوي لمستقبل مشرق',
-                        icon: Icons.auto_stories_rounded,
-                        color: const Color(0xFF2E7D32),
-                        tags: const ['تأسيس', 'ألعاب تعليمية'],
-                        onTap: () =>
-                            _openStage(context, 'الابتدائية', Stage.primary),
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate([
+                          _PremiumStageCard(
+                            index: 0,
+                            visible: _visibleCount > 0,
+                            title: 'المرحلة الابتدائية',
+                            desc: 'تأسيس قوي لمستقبل مشرق',
+                            icon: Icons.auto_stories_rounded,
+                            color: const Color(0xFF2E7D32),
+                            tags: const ['تأسيس', 'ألعاب تعليمية'],
+                            onTap: () => _openStage(
+                              context,
+                              'الابتدائية',
+                              Stage.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          _PremiumStageCard(
+                            index: 1,
+                            visible: _visibleCount > 1,
+                            title: 'المرحلة الإعدادية',
+                            desc: 'تطوير المهارات والمعرفة الأساسية',
+                            icon: Icons.psychology_rounded,
+                            color: const Color(0xFFE65100),
+                            tags: const ['تطوير', 'لغات'],
+                            onTap: () => _openStage(
+                              context,
+                              'الإعدادية',
+                              Stage.preparatory,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          _PremiumStageCard(
+                            index: 2,
+                            visible: _visibleCount > 2,
+                            title: 'المرحلة الثانوية',
+                            desc: 'رحلة النجاح نحو الجامعة',
+                            icon: Icons.workspace_premium_rounded,
+                            color: const Color(0xFF1565C0),
+                            tags: const ['تخصص', 'أوائل'],
+                            onTap: () => _openStage(
+                              context,
+                              'الثانوية',
+                              Stage.secondary,
+                            ),
+                          ),
+                        ]),
                       ),
-                      const SizedBox(height: 20),
-                      _PremiumStageCard(
-                        index: 1,
-                        visible: _visibleCount > 1,
-                        title: 'المرحلة الإعدادية',
-                        desc: 'تطوير المهارات والمعرفة الأساسية',
-                        icon: Icons.psychology_rounded,
-                        color: const Color(0xFFE65100),
-                        tags: const ['تطوير', 'لغات'],
-                        onTap: () =>
-                            _openStage(context, 'الإعدادية', Stage.preparatory),
-                      ),
-                      const SizedBox(height: 20),
-                      _PremiumStageCard(
-                        index: 2,
-                        visible: _visibleCount > 2,
-                        title: 'المرحلة الثانوية',
-                        desc: 'رحلة النجاح نحو الجامعة',
-                        icon: Icons.workspace_premium_rounded,
-                        color: const Color(0xFF1565C0),
-                        tags: const ['تخصص', 'أوائل'],
-                        onTap: () =>
-                            _openStage(context, 'الثانوية', Stage.secondary),
-                      ),
-                    ]),
-                  ),
-                ),
-              ],
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ],

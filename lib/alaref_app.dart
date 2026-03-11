@@ -33,8 +33,10 @@ class AlArefApp extends StatelessWidget {
             ),
           ),
           initialRoute: FirebaseAuth.instance.currentUser != null
-              ? Routes.bottomNavBar
-              : Routes.registerPage,
+              ? (FirebaseAuth.instance.currentUser!.email == 'admin@admin.com'
+                    ? Routes.adminDashboard
+                    : Routes.bottomNavBar)
+              : Routes.loginPage,
           onGenerateRoute: appRouter.generateRoute,
         );
       },

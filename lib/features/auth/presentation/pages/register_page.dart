@@ -25,7 +25,7 @@ class RegisterPage extends StatelessWidget {
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthSuccess) {
-            context.pushNamed(Routes.homeScreen);
+            context.pushNamed(Routes.bottomNavBar);
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

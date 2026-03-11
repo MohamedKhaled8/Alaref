@@ -5,6 +5,7 @@ import 'package:alaref/features/auth/domain/repositories/auth_repository.dart';
 import 'package:alaref/features/auth/domain/usecases/login_usecase.dart';
 import 'package:alaref/features/auth/domain/usecases/register_usecase.dart';
 import 'package:alaref/features/auth/presentation/cubit/cubit/auth_cubit.dart';
+import 'package:alaref/features/admin/dashBoard/presentation/cubit/dashboard_cubit.dart';
 import 'package:get_it/get_it.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,7 +19,6 @@ Future<void> initDependencies() async {
   // ==============================
   // 🔵 Firebase - External
   // ==============================
-  // registerLazySingleton = بيعمل الـ object مرة واحدة بس لما تطلبه أول مرة
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
 
@@ -26,10 +26,7 @@ Future<void> initDependencies() async {
   // 🟡 DataSource - Data Layer
   // ==============================
   sl.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(
-      firebaseAuth: sl(), // sl() بتجيب FirebaseAuth.instance اللي سجلناه فوق
-      firestore: sl(),    // sl() بتجيب FirebaseFirestore.instance
-    ),
+    () => AuthRemoteDataSourceImpl(firebaseAuth: sl(), firestore: sl()),
   );
 
   // ==============================
@@ -48,12 +45,12 @@ Future<void> initDependencies() async {
   // ==============================
   // 🔴 Cubit - Presentation Layer
   // ==============================
-  // registerFactory = بيعمل instance جديدة كل ما تطلبها
-  // (مش singleton عشان الـ Cubit بيتعمل مع الشاشة ويتدمر معاها)
   sl.registerFactory(
-    () => AuthCubit(
-      loginUseCase: sl(),
-      registerUseCase: sl(),
-    ),
+    () => AuthCubit(loginUseCase: sl(), registerUseCase: sl()),
   );
+
+  // ==============================
+  // 🟣 Dashboard Cubit
+  // ==============================
+  sl.registerFactory(() => DashboardCubit(firestore: sl()));
 }

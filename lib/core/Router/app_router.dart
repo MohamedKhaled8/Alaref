@@ -6,13 +6,12 @@ import 'package:alaref/features/auth/presentation/pages/login_page.dart';
 import 'package:alaref/features/auth/presentation/pages/register_page.dart';
 import 'package:alaref/features/bottom_nav_bar/presentation/pages/main_wrapper.dart';
 import 'package:alaref/features/admin/dashBoard/presentation/pages/admin_dashboard_page.dart';
-
+import 'package:alaref/features/packages/presentation/pages/packages_screen.dart';
+import 'package:alaref/features/exams/presentation/pages/exams_screen.dart';
 import 'package:alaref/features/home/presentation/pages/home_screen.dart';
 
 class AppRouter {
   Route<dynamic>? generateRoute(RouteSettings settings) {
-    // final argument = settings.arguments; // currently unused
-
     switch (settings.name) {
       case Routes.homeScreen:
         return MaterialPageRoute(builder: (_) => const HomeScreen());
@@ -36,8 +35,10 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const BottomNavBar());
       case Routes.adminDashboard:
         return MaterialPageRoute(builder: (_) => const AdminDashboardPage());
-      // Payment System Routes - New Modern Design
-
+      case Routes.packagesScreen:
+        return MaterialPageRoute(builder: (_) => const PackagesScreen());
+      case Routes.examsScreen:
+        return MaterialPageRoute(builder: (_) => const ExamsScreen());
       default:
         return MaterialPageRoute(
           builder: (_) =>

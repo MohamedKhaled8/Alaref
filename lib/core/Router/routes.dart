@@ -4,4 +4,6 @@ abstract class Routes {
   static const String registerPage = '/registerPage';
   static const String bottomNavBar = '/bottomNavBar';
   static const String adminDashboard = '/adminDashboard';
+  static const String packagesScreen = '/packagesScreen';
+  static const String examsScreen = '/examsScreen';
 }

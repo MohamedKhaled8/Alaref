@@ -48,7 +48,10 @@ class HomePopularCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   image: DecorationImage(
-                    image: NetworkImage(imageUrl),
+                    image: (imageUrl.startsWith('http'))
+                        ? NetworkImage(imageUrl)
+                        : const AssetImage('assets/images/placeholder.png')
+                              as ImageProvider,
                     fit: BoxFit.cover,
                   ),
                 ),
