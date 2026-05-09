@@ -11,12 +11,20 @@ class AuthPasswordField extends StatelessWidget {
     this.labelText,
     this.hintText,
     this.validator,
+    this.fillColor,
+    this.enabledBorder,
+    this.focusedBorder,
+    this.contentPadding,
   });
 
   final TextEditingController? controller;
   final String? labelText;
   final String? hintText;
   final String? Function(String?)? validator;
+  final Color? fillColor;
+  final InputBorder? enabledBorder;
+  final InputBorder? focusedBorder;
+  final EdgeInsetsGeometry? contentPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -29,13 +37,17 @@ class AuthPasswordField extends StatelessWidget {
           hintText: hintText ?? 'Password',
           obscureText: authCubit.isPasswordHidden,
           validator: validator,
+          fillColor: fillColor,
+          enabledBorder: enabledBorder,
+          focusedBorder: focusedBorder,
+          contentPadding: contentPadding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           suffixIcon: IconButton(
             onPressed: () => authCubit.togglePasswordVisibility(),
             icon: Icon(
               authCubit.isPasswordHidden
                   ? Icons.visibility_off_outlined
                   : Icons.visibility_outlined,
-              color: const Color(0xFF9AA4C1),
+              color: const Color(0xFF94A3B8),
             ),
           ),
         );

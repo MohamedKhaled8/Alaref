@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/models/code_model.dart';
 import '../cubit/dashboard_cubit.dart';
+import 'admin_codes_all_page.dart';
 
 class AdminCodesPage extends StatefulWidget {
   const AdminCodesPage({super.key});
@@ -377,8 +377,15 @@ class _AdminCodesPageState extends State<AdminCodesPage> {
   Widget _buildShowAllCodesButton() {
     return GestureDetector(
       onTap: () {
-        context.read<DashboardCubit>().loadCodes();
-        _showCodesDialog();
+        final cubit = context.read<DashboardCubit>();
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => BlocProvider.value(
+              value: cubit,
+              child: const AdminCodesAllPage(),
+            ),
+          ),
+        );
       },
       child: Container(
         width: double.infinity,
@@ -390,110 +397,13 @@ class _AdminCodesPageState extends State<AdminCodesPage> {
         ),
         child: const Center(
           child: Text(
-            'عرض جميع الأكواد',
+            'عرض جميع الأكواد والسجلات',
             style: TextStyle(
               color: Color(0xFF9C27B0),
               fontWeight: FontWeight.bold,
               fontSize: 15,
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  void _showCodesDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => BlocProvider.value(
-        value: context.read<DashboardCubit>(),
-        child: AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          title: const Text(
-            'جميع الأكواد',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: SizedBox(
-            width: double.maxFinite,
-            height: 400,
-            child: BlocBuilder<DashboardCubit, DashboardState>(
-              builder: (context, state) {
-                if (state is DashboardLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF335EF7)),
-                  );
-                }
-                if (state is CodesLoaded) {
-                  if (state.codes.isEmpty) {
-                    return const Center(child: Text('لا يوجد أكواد بعد'));
-                  }
-                  return ListView.builder(
-                    itemCount: state.codes.length,
-                    itemBuilder: (context, i) {
-                      final code = state.codes[i] as CodeModel;
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: code.isUsed
-                              ? Colors.red.withOpacity(0.05)
-                              : Colors.green.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              code.code,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: code.isUsed
-                                    ? Colors.red
-                                    : const Color(0xFF4CAF50),
-                                letterSpacing: 2,
-                              ),
-                            ),
-                            const Spacer(),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  '${code.value.toStringAsFixed(0)} ج.م',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                                Text(
-                                  code.isUsed ? 'مستخدم' : 'متاح',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: code.isUsed
-                                        ? Colors.red
-                                        : Colors.green,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('إغلاق'),
-            ),
-          ],
         ),
       ),
     );

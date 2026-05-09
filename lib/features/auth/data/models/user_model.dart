@@ -9,6 +9,7 @@ class UserModel extends UserEntity {
     required super.phone,
     required super.parentPhone,
     required super.stage,
+    required super.studentCode,
     required super.password,
   });
 
@@ -23,6 +24,7 @@ class UserModel extends UserEntity {
       parentPhone: map['parentPhone'] ?? '',
       // بنحول الـ String اللي في Firestore لـ enum
       stage: _stageFromString(map['stage'] ?? 'primary'),
+      studentCode: map['studentCode'] ?? uid.substring(0, 8).toUpperCase(),
       password: map['password'] ?? '',
     );
   }
@@ -35,6 +37,7 @@ class UserModel extends UserEntity {
       'email': email,
       'phone': phone,
       'parentPhone': parentPhone,
+      'studentCode': studentCode,
       // بنحول الـ enum لـ String عشان Firestore ما بيعرفش enum
       'stage': _stageToString(stage),
       'createdAt': DateTime.now().toIso8601String(), // وقت الإنشاء

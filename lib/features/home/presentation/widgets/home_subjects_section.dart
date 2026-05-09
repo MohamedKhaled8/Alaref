@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:responsive_screen_master/responsive_screen_master.dart';
 
 class HomeSubjectsSection extends StatelessWidget {
   const HomeSubjectsSection({super.key});
@@ -17,35 +18,35 @@ class HomeSubjectsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 22),
+          padding: EdgeInsets.symmetric(horizontal: 22.sw),
           child: Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.flash_on_rounded,
-                size: 22,
-                color: Color(0xFFFF9800),
+                size: 22.sw,
+                color: const Color(0xFFFF9800),
               ),
-              const SizedBox(width: 8),
-              const Text(
+              SizedBox(width: 8.sw),
+              Text(
                 'الوصول السريع',
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: 17.spScaled,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A1D2E),
+                  color: const Color(0xFF1A1D2E),
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 14),
+        SizedBox(height: 14.sh),
         SizedBox(
-          height: 44,
+          height: 48.sh,
           child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 22),
+            padding: EdgeInsets.symmetric(horizontal: 22.sw),
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             itemCount: _items.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            separatorBuilder: (_, __) => SizedBox(width: 10.sw),
             itemBuilder: (context, i) {
               final (title, icon, color) = _items[i];
               return _SubjectChip(
@@ -84,7 +85,7 @@ class _SubjectChip extends StatelessWidget {
         onTap: () {},
         borderRadius: BorderRadius.circular(14),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: EdgeInsets.symmetric(horizontal: 16.sw, vertical: 10.sh),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             boxShadow: isSelected
@@ -106,14 +107,14 @@ class _SubjectChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 20, color: isSelected ? Colors.white : color),
-              const SizedBox(width: 8),
+              Icon(icon, size: 20.sw, color: isSelected ? Colors.white : color),
+              SizedBox(width: 8.sw),
               Text(
                 title,
                 style: TextStyle(
                   color: isSelected ? Colors.white : const Color(0xFF1A1D2E),
                   fontWeight: FontWeight.bold,
-                  fontSize: 13,
+                  fontSize: 13.spScaled,
                 ),
               ),
             ],

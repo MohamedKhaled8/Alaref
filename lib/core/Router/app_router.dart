@@ -14,36 +14,66 @@ class AppRouter {
   Route<dynamic>? generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case Routes.homeScreen:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return _buildRoute(const HomeScreen(), settings);
       case Routes.loginPage:
-        return MaterialPageRoute(
-          builder: (_) => BlocProvider(
+        return _buildRoute(
+          BlocProvider(
             create: (context) =>
                 AuthCubit(loginUseCase: sl(), registerUseCase: sl()),
             child: const LoginPage(),
           ),
+          settings,
         );
       case Routes.registerPage:
-        return MaterialPageRoute(
-          builder: (_) => BlocProvider(
+        return _buildRoute(
+          BlocProvider(
             create: (context) =>
                 AuthCubit(loginUseCase: sl(), registerUseCase: sl()),
             child: const RegisterPage(),
           ),
+          settings,
         );
       case Routes.bottomNavBar:
-        return MaterialPageRoute(builder: (_) => const BottomNavBar());
+        return _buildRoute(const BottomNavBar(), settings);
       case Routes.adminDashboard:
-        return MaterialPageRoute(builder: (_) => const AdminDashboardPage());
+        return _buildRoute(const AdminDashboardPage(), settings);
       case Routes.packagesScreen:
-        return MaterialPageRoute(builder: (_) => const PackagesScreen());
+        return _buildRoute(const PackagesScreen(), settings);
       case Routes.examsScreen:
-        return MaterialPageRoute(builder: (_) => const ExamsScreen());
+        return _buildRoute(const ExamsScreen(), settings);
       default:
         return MaterialPageRoute(
           builder: (_) =>
               const Scaffold(body: Center(child: Text("No route defined"))),
         );
     }
+  }
+
+  /// Smooth slide + fade transition for all routes
+  PageRouteBuilder _buildRoute(Widget page, RouteSettings settings) {
+    return PageRouteBuilder(
+      settings: settings,
+      transitionDuration: const Duration(milliseconds: 350),
+      reverseTransitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final curvedAnimation = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0.15, 0),
+            end: Offset.zero,
+          ).animate(curvedAnimation),
+          child: FadeTransition(
+            opacity: Tween<double>(begin: 0.0, end: 1.0).animate(curvedAnimation),
+            child: child,
+          ),
+        );
+      },
+    );
   }
 }

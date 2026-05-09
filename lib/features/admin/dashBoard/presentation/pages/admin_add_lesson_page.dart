@@ -6,9 +6,17 @@ import '../../data/models/lesson_model.dart';
 import '../../data/models/exam_model.dart';
 import '../cubit/dashboard_cubit.dart';
 
+/// وضع النموذج: كورس (مادة) أو باقة أو نموذج مرن (حصة منفردة قديم).
+enum AdminAddLessonMode { flexible, course, package }
+
 class AdminAddLessonPage extends StatefulWidget {
   final LessonModel? lessonToEdit;
-  const AdminAddLessonPage({super.key, this.lessonToEdit});
+  final AdminAddLessonMode mode;
+  const AdminAddLessonPage({
+    super.key,
+    this.lessonToEdit,
+    this.mode = AdminAddLessonMode.flexible,
+  });
 
   @override
   State<AdminAddLessonPage> createState() => _AdminAddLessonPageState();
@@ -26,6 +34,8 @@ class _PackageItemData {
 
 class _AdminAddLessonPageState extends State<AdminAddLessonPage>
     with SingleTickerProviderStateMixin {
+  late AdminAddLessonMode _effectiveMode;
+
   final _formKey = GlobalKey<FormState>();
   final titleCtrl = TextEditingController();
   final descCtrl = TextEditingController();
@@ -35,6 +45,7 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
   final minScoreCtrl = TextEditingController(text: '50');
   final discountValCtrl = TextEditingController();
   bool isPackage = false;
+  bool isCourse = false;
   bool hasDiscount = false;
   String discountType = 'percentage'; // or 'fixed'
   bool requiresExam = false;
@@ -42,6 +53,7 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
   String selectedStage = 'primary';
   String? selectedTeacherId;
   String selectedTeacherName = '';
+  bool isActive = true;
   List<_PackageItemData> packageItems = [];
 
   List<ExamModel> _exams = [];
@@ -51,6 +63,7 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
   @override
   void initState() {
     super.initState();
+    _effectiveMode = _resolveMode();
     _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -69,6 +82,7 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
       videoCtrl.text = lesson.videoUrl;
       priceCtrl.text = lesson.price.toString();
       isPackage = lesson.isPackage;
+      isCourse = lesson.isCourse;
       hasDiscount = lesson.hasDiscount;
       if (hasDiscount && lesson.discountPrice != null && lesson.price > 0) {
         // Try to reverse calculate if it was a percentage or fixed
@@ -81,6 +95,7 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
       selectedStage = lesson.stage;
       selectedTeacherId = lesson.teacherId;
       selectedTeacherName = lesson.teacherName;
+      isActive = lesson.isActive;
       for (var item in lesson.packageItems) {
         final data = _PackageItemData();
         data.titleCtrl.text = item.title;
@@ -92,7 +107,91 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
         data.minScoreCtrl.text = item.minimumPassScore.toString();
         packageItems.add(data);
       }
+    } else {
+      if (_effectiveMode == AdminAddLessonMode.course) {
+        isCourse = true;
+        isPackage = false;
+      } else if (_effectiveMode == AdminAddLessonMode.package) {
+        isPackage = true;
+        isCourse = false;
+      }
     }
+  }
+
+  AdminAddLessonMode _resolveMode() {
+    if (widget.lessonToEdit != null) {
+      final l = widget.lessonToEdit!;
+      if (l.isCourse) return AdminAddLessonMode.course;
+      if (l.isPackage) return AdminAddLessonMode.package;
+    }
+    return widget.mode;
+  }
+
+  bool get _isCourseLocked => _effectiveMode == AdminAddLessonMode.course;
+  bool get _isPackageLocked => _effectiveMode == AdminAddLessonMode.package;
+  bool get _showTypeSwitches =>
+      _effectiveMode == AdminAddLessonMode.flexible;
+
+  String _headerTitle() {
+    if (widget.lessonToEdit != null) {
+      if (_isCourseLocked) return 'تعديل المادة / الكورس ✏️';
+      if (_isPackageLocked) return 'تعديل الباقة ✏️';
+      return 'تعديل بيانات الحصة ✏️';
+    }
+    if (_isCourseLocked) return 'إضافة مادة دراسية (كورس) 📘';
+    if (_isPackageLocked) return 'إضافة باقة تعليمية 📦';
+    return 'رفع حصة أو باقة جديدة 🚀';
+  }
+
+  String _headerSubtitle() {
+    if (_isCourseLocked) {
+      return 'اسم المادة أولاً — ثم يمكنك إضافة الحصص لاحقاً أو الآن';
+    }
+    if (_isPackageLocked) {
+      return 'أضف عناصر الباقة وروابط الفيديو';
+    }
+    return 'قم بملء البيانات التالية بعناية';
+  }
+
+  String _imageSectionTitle() {
+    if (_isCourseLocked) return '📸 صورة المادة';
+    if (_isPackageLocked) return '📸 صورة الباقة';
+    return '📸 صورة الحصة / الباقة';
+  }
+
+  String _imagePickerHint() {
+    if (_isCourseLocked) return 'اختر صورة للمادة';
+    if (_isPackageLocked) return 'اختر صورة للباقة';
+    return 'اختر صورة الحصة أو الباقة';
+  }
+
+  String _titleFieldLabel() {
+    if (_isCourseLocked) return 'اسم المادة';
+    if (_isPackageLocked) return 'اسم الباقة';
+    return 'اسم الحصة / الباقة';
+  }
+
+  String _titleFieldHint() {
+    if (_isCourseLocked) return 'مثال: رياضيات — الصف الثالث الإعدادي';
+    if (_isPackageLocked) return 'مثال: باقة الشهر';
+    return 'مثال: حصة الرياضيات - الفصل الأول';
+  }
+
+  String _descHint() {
+    if (_isCourseLocked) return 'وصف مختصر للمادة...';
+    if (_isPackageLocked) return 'وصف مختصر للباقة...';
+    return 'وصف مختصر للحصة أو الباقة...';
+  }
+
+  String _itemsSectionTitle() {
+    if (isCourse) return '📚 حصص المادة (اختياري)';
+    return '📦 محتويات الباقة';
+  }
+
+  String _saveButtonLabel() {
+    if (_isCourseLocked) return 'حفظ ونشر المادة';
+    if (_isPackageLocked) return 'حفظ ونشر الباقة';
+    return 'حفظ ورفع الحصة / الباقة';
   }
 
   void _loadExams() async {
@@ -221,9 +320,7 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.lessonToEdit != null
-                                ? 'تعديل بيانات الحصة ✏️'
-                                : 'رفع حصة أو باقة جديدة 🚀',
+                            _headerTitle(),
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
@@ -232,7 +329,7 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'قم بملء البيانات التالية بعناية',
+                            _headerSubtitle(),
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.white.withOpacity(0.8),
@@ -259,11 +356,11 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // ─── Image Picker ───────────────────────
-                      _buildSectionTitle('📸 صورة الحصة / الباقة'),
+                      _buildSectionTitle(_imageSectionTitle()),
                       const SizedBox(height: 10),
                       _buildPremiumImagePicker(
                         imageCtrl,
-                        'اختر صورة الحصة أو الباقة',
+                        _imagePickerHint(),
                       ),
                       const SizedBox(height: 24),
 
@@ -275,9 +372,9 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
                         children: [
                           _buildPremiumTextField(
                             controller: titleCtrl,
-                            label: 'اسم الحصة / الباقة',
+                            label: _titleFieldLabel(),
                             icon: Icons.title_rounded,
-                            hint: 'مثال: حصة الرياضيات - الفصل الأول',
+                            hint: _titleFieldHint(),
                           ),
                           const SizedBox(height: 16),
                           _buildPremiumTextField(
@@ -285,7 +382,7 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
                             label: 'الوصف',
                             icon: Icons.description_outlined,
                             maxLines: 3,
-                            hint: 'وصف مختصر للحصة أو الباقة...',
+                            hint: _descHint(),
                           ),
                           const SizedBox(height: 16),
                           _buildPremiumTextField(
@@ -464,19 +561,43 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
                             ),
                           ],
                           const SizedBox(height: 12),
+                          if (_showTypeSwitches) ...[
+                            _buildPremiumSwitch(
+                              label: 'هذه باقة (Package) عروض',
+                              icon: Icons.inventory_2_outlined,
+                              value: isPackage,
+                              color: _pinkAccent,
+                              onChanged: (val) => setState(() {
+                                isPackage = val;
+                                if (val) isCourse = false;
+                              }),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildPremiumSwitch(
+                              label: 'هذا كورس تعليمي (Course) للمادة',
+                              icon: Icons.grid_view_rounded,
+                              value: isCourse,
+                              color: _secondaryColor,
+                              onChanged: (val) => setState(() {
+                                isCourse = val;
+                                if (val) isPackage = false;
+                              }),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
                           _buildPremiumSwitch(
-                            label: 'هذه باقة (Package) تحتوي على عدة حصص',
-                            icon: Icons.inventory_2_outlined,
-                            value: isPackage,
-                            color: _pinkAccent,
-                            onChanged: (val) => setState(() => isPackage = val),
+                            label: 'الحصة متاحة الآن للطلاب',
+                            icon: Icons.visibility_rounded,
+                            value: isActive,
+                            color: _successColor,
+                            onChanged: (val) => setState(() => isActive = val),
                           ),
                         ],
                       ),
                       const SizedBox(height: 20),
 
-                      // ─── Prerequisite Exam (Non-Package) ─────
-                      if (!isPackage) ...[
+                      // ─── Prerequisite Exam (Non-Package & Non-Course) ─────
+                      if (!isPackage && !isCourse) ...[
                         _buildGlassCard(
                           icon: Icons.quiz_outlined,
                           title: 'الامتحان القبلي (اختياري)',
@@ -544,9 +665,9 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
                         const SizedBox(height: 20),
                       ],
 
-                      // ─── Package Items ──────────────────────
-                      if (isPackage) ...[
-                        _buildSectionTitle('📦 محتويات الباقة'),
+                      // ─── Package/Course Items ──────────────────────
+                      if (isPackage || isCourse) ...[
+                        _buildSectionTitle(_itemsSectionTitle()),
                         const SizedBox(height: 12),
                         ...packageItems.asMap().entries.map((entry) {
                           final i = entry.key;
@@ -554,9 +675,9 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
                           return _buildPackageItemCard(i, item);
                         }),
                         const SizedBox(height: 12),
-                        _buildAddButton(
-                          label: 'إضافة حصة للباقة',
-                          icon: Icons.add_circle_outline_rounded,
+                          _buildAddButton(
+                            label: isCourse ? 'إضافة حصة للكورس' : 'إضافة حصة للباقة',
+                            icon: Icons.add_circle_outline_rounded,
                           color: _pinkAccent,
                           onTap: () => setState(
                             () => packageItems.add(_PackageItemData()),
@@ -1177,7 +1298,7 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
             Text(
               widget.lessonToEdit != null
                   ? 'حفظ التعديلات'
-                  : 'حفظ ورفع الحصة / الباقة',
+                  : _saveButtonLabel(),
               style: const TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
@@ -1196,7 +1317,7 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
 
   void _saveLesson() {
     if (titleCtrl.text.isEmpty ||
-        videoCtrl.text.isEmpty ||
+        (!isPackage && !isCourse && videoCtrl.text.isEmpty) ||
         priceCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1218,8 +1339,29 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
       return;
     }
 
+    if (isPackage && packageItems.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline_rounded, color: Colors.white),
+              const SizedBox(width: 8),
+              const Text('برجاء إضافة حصة واحدة على الأقل للباقة'),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+      return;
+    }
+
     // Validate exam selection when requiresExam is on
-    if (!isPackage && requiresExam && selectedExamId == null) {
+    if (!isPackage && !isCourse && requiresExam && selectedExamId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -1263,11 +1405,13 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
       teacherId: selectedTeacherId ?? '',
       teacherName: selectedTeacherName,
       isPackage: isPackage,
+      isCourse: isCourse,
       stage: selectedStage,
       createdAt: widget.lessonToEdit?.createdAt ?? DateTime.now(),
-      requiresExam: isPackage ? false : requiresExam,
-      prerequisiteExamId: isPackage ? null : selectedExamId,
-      minimumPassScore: isPackage
+      isActive: isActive,
+      requiresExam: (isPackage || isCourse) ? false : requiresExam,
+      prerequisiteExamId: (isPackage || isCourse) ? null : selectedExamId,
+      minimumPassScore: (isPackage || isCourse)
           ? 50
           : (int.tryParse(minScoreCtrl.text) ?? 50),
       packageItems: packageItems.map((item) {
@@ -1285,9 +1429,9 @@ class _AdminAddLessonPageState extends State<AdminAddLessonPage>
 
     if (widget.lessonToEdit != null) {
       context.read<DashboardCubit>().updateLesson(
-        widget.lessonToEdit!.id,
-        lesson,
-      );
+            widget.lessonToEdit!.id,
+            lesson,
+          );
     } else {
       context.read<DashboardCubit>().addLesson(lesson);
     }

@@ -43,9 +43,9 @@ class _SocialButton extends StatelessWidget {
         // TODO: Implement social auth.
       },
       style: OutlinedButton.styleFrom(
-        side: const BorderSide(color: Color(0xFFE0E6F3)),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
         ),
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
         backgroundColor: Colors.white,
@@ -55,14 +55,14 @@ class _SocialButton extends StatelessWidget {
         children: [
           Icon(
             icon,
-            color: const Color(0xFF1363DF),
+            color: const Color(0xFF0D9488),
             size: 20,
           ),
           const SizedBox(width: 8),
           Text(
             label,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: const Color(0xFF1A1E2A),
+              color: const Color(0xFF0F172A),
               fontWeight: FontWeight.w600,
             ),
           ),

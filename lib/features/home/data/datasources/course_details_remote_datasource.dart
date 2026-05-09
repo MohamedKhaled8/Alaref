@@ -202,15 +202,32 @@ class CourseDetailsRemoteDataSourceImpl
         );
       }
 
-      // Mark code as used
+      // Mark code as used with full details
+      final uid = firebaseAuth.currentUser?.uid;
+      String studentName = firebaseAuth.currentUser?.displayName ?? '';
+      String studentPhone = '';
+      String studentCode = '';
+      
+      if (uid != null) {
+        final userDoc = await firestore.collection('users').doc(uid).get();
+        if (userDoc.exists) {
+          final userData = userDoc.data()!;
+          studentName = userData['name'] ?? studentName;
+          studentPhone = userData['phone'] ?? '';
+          studentCode = userData['studentCode'] ?? '';
+        }
+      }
+
       await firestore.collection('codes').doc(codeDoc.id).update({
         'isUsed': true,
-        'usedBy': firebaseAuth.currentUser?.uid,
+        'usedByStudentId': uid,
+        'usedByStudentName': studentName,
+        'usedByStudentPhone': studentPhone,
+        'usedByStudentCode': studentCode,
         'usedAt': FieldValue.serverTimestamp(),
       });
 
       // Add lesson to user purchased array
-      final uid = firebaseAuth.currentUser?.uid;
       if (uid != null) {
         await firestore.collection('users').doc(uid).update({
           'purchasedLessons': FieldValue.arrayUnion([lessonId]),

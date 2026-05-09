@@ -76,6 +76,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         phone: phone,
         parentPhone: parentPhone,
         stage: stage,
+        studentCode: uid.substring(0, 8).toUpperCase(),
         password: password,
       );
 

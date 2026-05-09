@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:alaref/features/home/presentation/pages/home_screen.dart';
-import 'package:alaref/features/courses/presentation/pages/my_courses_screen.dart';
-
+import 'package:alaref/features/courses/presentation/pages/courses_screen.dart';
+import 'package:alaref/features/packages/presentation/pages/packages_screen.dart';
 import 'package:alaref/features/exams/presentation/pages/exams_screen.dart';
 import 'package:alaref/features/profile/presentation/pages/profile_screen.dart';
+
 
 // ============================================
 // MAIN WRAPPER (BOTTOM NAV BAR)
@@ -18,12 +19,12 @@ class BottomNavBar extends StatefulWidget {
 class _BottomNavBarState extends State<BottomNavBar> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    HomeScreen(),
-    MyCoursesScreen(),
-
-    ExamsScreen(),
-    ProfileScreen(),
+  final List<Widget> _pages = [
+    const HomeScreen(),
+    const CoursesScreen(),
+    const PackagesScreen(),
+    const ExamsScreen(),
+    const ProfileScreen(),
   ];
 
   @override
@@ -46,9 +47,11 @@ class _BottomNavBarState extends State<BottomNavBar> {
           child: BottomNavigationBar(
             currentIndex: _currentIndex,
             onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
+              if (index != _currentIndex) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              }
             },
             showSelectedLabels: true,
             showUnselectedLabels: true,
@@ -71,10 +74,13 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 label: 'الرئيسية',
               ),
               BottomNavigationBarItem(
+                icon: Icon(Icons.grid_view_rounded, size: 24),
+                label: 'الكورسات',
+              ),
+              BottomNavigationBarItem(
                 icon: Icon(Icons.menu_book_rounded, size: 24),
                 label: 'الباقات',
               ),
-
               BottomNavigationBarItem(
                 icon: Icon(Icons.quiz_rounded, size: 24),
                 label: 'الامتحانات',

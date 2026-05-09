@@ -26,9 +26,11 @@ class SharedFormField extends StatelessWidget {
     this.initialValue,
     this.contentPadding =
         const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    this.fillColor,
   });
 
   final TextEditingController? controller;
+  final Color? fillColor;
   final String? Function(String?)? validator;
   final String? hintText;
   final String? labelText;
@@ -54,23 +56,23 @@ class SharedFormField extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final defaultBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(14),
       borderSide: const BorderSide(
-        color: Color(0xFFE0E6F3),
+        color: Color(0xFFE2E8F0),
         width: 1.2,
       ),
     );
 
     final defaultFocusedBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(14),
       borderSide: const BorderSide(
-        color: Color(0xFF1363DF),
+        color: Color(0xFF2563EB),
         width: 1.4,
       ),
     );
 
     final defaultErrorBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(14),
       borderSide: BorderSide(
         color: theme.colorScheme.error,
         width: 1.4,
@@ -99,7 +101,7 @@ class SharedFormField extends StatelessWidget {
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: Colors.white,
+        fillColor: fillColor ?? Colors.white,
         border: enabledBorder ?? defaultBorder,
         enabledBorder: enabledBorder ?? defaultBorder,
         focusedBorder: focusedBorder ?? defaultFocusedBorder,
@@ -108,10 +110,10 @@ class SharedFormField extends StatelessWidget {
         disabledBorder: disabledBorder ?? defaultBorder,
         contentPadding: contentPadding,
         hintStyle: theme.textTheme.bodyMedium?.copyWith(
-          color: const Color(0xFF9AA4C1),
+          color: const Color(0xFF94A3B8),
         ),
         labelStyle: theme.textTheme.bodySmall?.copyWith(
-          color: const Color(0xFF6C7589),
+          color: const Color(0xFF64748B),
           fontWeight: FontWeight.w500,
         ),
       ),

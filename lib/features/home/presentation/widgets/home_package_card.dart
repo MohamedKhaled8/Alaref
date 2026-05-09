@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:responsive_screen_master/responsive_screen_master.dart';
 
 class HomePackageCard extends StatelessWidget {
   final String title;
@@ -24,12 +25,12 @@ class HomePackageCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {},
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(22.sw),
         child: Container(
-          width: 300,
-          height: 180,
+          width: 300.sw,
+          height: 220.sh,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(24.sw),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.12),
@@ -39,7 +40,7 @@ class HomePackageCard extends StatelessWidget {
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(24.sw),
             child: Stack(
               fit: StackFit.expand,
               children: [
@@ -65,7 +66,7 @@ class HomePackageCard extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(18),
+                  padding: EdgeInsets.all(18.sw),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -101,7 +102,7 @@ class HomePackageCard extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(12.sw),
                             ),
                             child: Text(
                               price,

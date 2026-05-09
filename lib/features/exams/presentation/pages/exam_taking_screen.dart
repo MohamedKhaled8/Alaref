@@ -78,46 +78,21 @@ class _ExamTakingScreenState extends State<ExamTakingScreen>
         });
 
         final data = docs.first.data();
-        final previousScore = (data['score'] as num?)?.toInt() ?? 0;
-        final totalGrade = widget.exam.totalGrade;
-        final passed = totalGrade > 0 && previousScore >= (totalGrade / 2);
+        final previousAnswers = Map<int, String>.from(
+          (data['answers'] as Map).map(
+            (k, v) => MapEntry(int.parse(k.toString()), v.toString()),
+          ),
+        );
 
-        DateTime submittedAt = DateTime.now();
-        if (data['submittedAt'] != null && data['submittedAt'] is Timestamp) {
-          submittedAt = (data['submittedAt'] as Timestamp).toDate();
-        }
-
-        if (passed) {
+        if (mounted) {
           setState(() {
-            _alreadyTaken = true;
             _checkingPrevious = false;
-            _score = previousScore;
-            if (data['answers'] != null) {
-              _answers = Map<int, String>.from(
-                (data['answers'] as Map).map(
-                  (k, v) => MapEntry(int.parse(k.toString()), v.toString()),
-                ),
-              );
-            }
+            _alreadyTaken = true;
+            _answers = previousAnswers;
+            _score = data['score'] ?? 0;
           });
-          return;
-        } else {
-          // Failed. Check cooldown.
-          if (widget.exam.retakeCooldownSeconds > 0) {
-            final nextRetake = submittedAt.add(
-              Duration(seconds: widget.exam.retakeCooldownSeconds),
-            );
-            if (DateTime.now().isBefore(nextRetake)) {
-              setState(() {
-                _checkingPrevious = false;
-                _isInCooldown = true;
-                _nextRetakeTime = nextRetake;
-              });
-              return;
-            }
-          }
-          // Can retake!
         }
+        return;
       }
     }
     if (mounted) {
@@ -467,19 +442,41 @@ class _ExamTakingScreenState extends State<ExamTakingScreen>
                                 size: 20,
                               ),
                             ),
-                            onPressed: _confirmExit,
+                            onPressed: _alreadyTaken ? () => Navigator.pop(context) : _confirmExit,
                           ),
                           // Title
                           Expanded(
-                            child: Text(
-                              widget.exam.title,
-                              textAlign: TextAlign.center,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: _darkText,
-                              ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _alreadyTaken ? 'مراجعة الإجابات' : widget.exam.title,
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: _darkText,
+                                  ),
+                                ),
+                                if (_alreadyTaken)
+                                  Container(
+                                    margin: const EdgeInsets.only(top: 4),
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: _successGreen.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      'درجتك: $_score / ${widget.exam.totalGrade}',
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: _successGreen,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                           // Timer badge
@@ -711,7 +708,9 @@ class _ExamTakingScreenState extends State<ExamTakingScreen>
                                 ),
                               ],
                             ),
-                            child: TextField(
+                            child: TextFormField(
+                              key: ValueKey('q_$_currentQ'),
+                              initialValue: _answers[_currentQ] ?? '',
                               enabled: !_alreadyTaken,
                               onChanged: (val) => _answers[_currentQ] = val,
                               textDirection: TextDirection.rtl,
@@ -720,6 +719,7 @@ class _ExamTakingScreenState extends State<ExamTakingScreen>
                                 fontSize: 15,
                                 color: _darkText,
                               ),
+                              cursorColor: _primaryBlue,
                               decoration: InputDecoration(
                                 hintText: 'اكتب إجابتك هنا...',
                                 hintStyle: TextStyle(color: Colors.grey[400]),
@@ -740,6 +740,52 @@ class _ExamTakingScreenState extends State<ExamTakingScreen>
                               ),
                             ),
                           ),
+                        if (_alreadyTaken) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: _successGreen.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: _successGreen.withOpacity(0.2),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Row(
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle_rounded,
+                                      color: _successGreen,
+                                      size: 18,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'الإجابة الصحيحة:',
+                                      style: TextStyle(
+                                        color: _successGreen,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  q.correctAnswer,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF1E293B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 16),
                       ],
                     ),

@@ -4,8 +4,12 @@ import '../../data/models/lesson_model.dart';
 import '../cubit/dashboard_cubit.dart';
 import 'admin_add_lesson_page.dart';
 
+/// تبويب منفصل في لوحة الأدمن: كورسات (مواد) vs باقات.
+enum AdminLibraryTab { courses, packages }
+
 class AdminCoursesVideosPage extends StatefulWidget {
-  const AdminCoursesVideosPage({super.key});
+  final AdminLibraryTab tab;
+  const AdminCoursesVideosPage({super.key, this.tab = AdminLibraryTab.courses});
 
   @override
   State<AdminCoursesVideosPage> createState() => _AdminCoursesVideosPageState();
@@ -16,6 +20,69 @@ class _AdminCoursesVideosPageState extends State<AdminCoursesVideosPage> {
   void initState() {
     super.initState();
     context.read<DashboardCubit>().loadLessons();
+  }
+
+  List<LessonModel> _filterForTab(List<dynamic> lessons) {
+    return lessons
+        .cast<LessonModel>()
+        .where(
+          (l) => widget.tab == AdminLibraryTab.courses ? l.isCourse : l.isPackage,
+        )
+        .toList();
+  }
+
+  Widget _lessonsBody(LessonsLoaded loaded) {
+    final list = _filterForTab(loaded.lessons);
+    if (list.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              widget.tab == AdminLibraryTab.courses
+                  ? Icons.menu_book_rounded
+                  : Icons.inventory_2_outlined,
+              size: 64,
+              color: Colors.grey[300],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              widget.tab == AdminLibraryTab.courses
+                  ? 'لا توجد مواد مسجّلة بعد'
+                  : 'لا توجد باقات بعد',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[500],
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              widget.tab == AdminLibraryTab.courses
+                  ? 'اضغط الزر لإضافة مادة جديدة'
+                  : 'اضغط الزر لإضافة باقة جديدة',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[400],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: 100,
+      ),
+      physics: const BouncingScrollPhysics(),
+      itemCount: list.length,
+      itemBuilder: (context, index) {
+        return _LessonCard(lesson: list[index]);
+      },
+    );
   }
 
   @override
@@ -54,12 +121,15 @@ class _AdminCoursesVideosPageState extends State<AdminCoursesVideosPage> {
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () {
               final dashboardCubit = context.read<DashboardCubit>();
+              final mode = widget.tab == AdminLibraryTab.courses
+                  ? AdminAddLessonMode.course
+                  : AdminAddLessonMode.package;
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => BlocProvider.value(
                     value: dashboardCubit,
-                    child: const AdminAddLessonPage(),
+                    child: AdminAddLessonPage(mode: mode),
                   ),
                 ),
               ).then((_) {
@@ -68,12 +138,16 @@ class _AdminCoursesVideosPageState extends State<AdminCoursesVideosPage> {
                 }
               });
             },
-            backgroundColor: const Color(0xFFFF9800),
+            backgroundColor: widget.tab == AdminLibraryTab.courses
+                ? const Color(0xFF335EF7)
+                : const Color(0xFFE91E63),
             elevation: 4,
             icon: const Icon(Icons.add_rounded, color: Colors.white),
-            label: const Text(
-              'رفع حصة / باقة',
-              style: TextStyle(
+            label: Text(
+              widget.tab == AdminLibraryTab.courses
+                  ? 'إضافة مادة (كورس)'
+                  : 'إضافة باقة',
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
@@ -85,43 +159,8 @@ class _AdminCoursesVideosPageState extends State<AdminCoursesVideosPage> {
                   child: CircularProgressIndicator(color: Color(0xFF335EF7)),
                 )
               : state is LessonsLoaded
-              ? state.lessons.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.video_library_rounded,
-                              size: 64,
-                              color: Colors.grey[300],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'لا يوجد حصص بعد',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey[500],
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.only(
-                          left: 20,
-                          right: 20,
-                          top: 20,
-                          bottom: 100, // padding for FAB
-                        ),
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: state.lessons.length,
-                        itemBuilder: (context, index) {
-                          final lesson = state.lessons[index] as LessonModel;
-                          return _LessonCard(lesson: lesson);
-                        },
-                      )
-              : const SizedBox.shrink(),
+                  ? _lessonsBody(state)
+                  : const SizedBox.shrink(),
         );
       },
     );
@@ -230,8 +269,44 @@ class _LessonCard extends StatelessWidget {
                   ),
                 ),
               ),
-              // Package Badge
-              if (lesson.isPackage)
+              // Course / Package badge
+              if (lesson.isCourse)
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF335EF7),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.menu_book_rounded,
+                          color: Colors.white,
+                          size: 14,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          lesson.packageItems.isEmpty
+                              ? 'مادة — بدون حصص بعد'
+                              : 'مادة (${lesson.packageItems.length} حصص)',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else if (lesson.isPackage)
                 Positioned(
                   top: 12,
                   left: 12,

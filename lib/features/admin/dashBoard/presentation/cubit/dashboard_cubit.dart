@@ -94,6 +94,7 @@ class DashboardCubit extends Cubit<DashboardState> {
               (u) =>
                   (u['name'] ?? '').toString().toLowerCase().contains(q) ||
                   (u['email'] ?? '').toString().toLowerCase().contains(q) ||
+                  (u['studentCode'] ?? '').toString().toLowerCase().contains(q) ||
                   (u['phone'] ?? '').toString().contains(q),
             )
             .toList();
@@ -103,7 +104,6 @@ class DashboardCubit extends Cubit<DashboardState> {
   }
 
   Future<void> updateUser(String uid, Map<String, dynamic> data) async {
-    emit(DashboardLoading());
     try {
       await _firestore.collection('users').doc(uid).update(data);
       emit(UserUpdated());

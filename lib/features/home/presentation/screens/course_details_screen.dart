@@ -10,8 +10,11 @@ import 'package:alaref/features/home/presentation/widgets/course_lessons_tab.dar
 import 'package:alaref/features/home/presentation/widgets/course_reviews_tab.dart';
 import 'package:alaref/features/home/presentation/widgets/sliver_tab_bar_delegate.dart';
 import 'package:alaref/features/home/presentation/widgets/youtube_player_view.dart';
+import 'package:alaref/features/sessions/presentation/manager/sessions_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:responsive_screen_master/responsive_screen_master.dart';
 
 /// الصفحة الرئيسة — تفاصيل الحصة/الباقة
 class CourseDetailsScreen extends StatelessWidget {
@@ -21,10 +24,28 @@ class CourseDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Record session automatically
+    _recordSession();
+
     return BlocProvider(
       create: (_) => CourseDetailsCubit(lesson: lesson)..initialize(),
       child: CourseDetailsView(lesson: lesson),
     );
+  }
+
+  void _recordSession() {
+    try {
+      final cubit = GetIt.instance<SessionsCubit>();
+      cubit.recordSession(
+        lessonId: lesson.id,
+        lessonTitle: lesson.title,
+        lessonImageUrl: lesson.imageUrl,
+        teacherName: lesson.teacherName,
+      );
+      cubit.close(); // fire-and-forget, close after recording
+    } catch (_) {
+      // Silently fail — recording is non-critical
+    }
   }
 }
 
@@ -116,7 +137,16 @@ class CourseDetailsViewState extends State<CourseDetailsView>
                 slivers: [
                   // 1. Cover / Video Area
                   SliverAppBar(
-                    expandedHeight: 250,
+                    expandedHeight: stv(
+                      context: context,
+                      mobile: otv(
+                        context: context,
+                        portrait: 250.sh,
+                        landscape: 300.sh,
+                      ),
+                      tablet: 350.sh,
+                      desktop: 400.sh,
+                    ),
                     pinned: true,
                     backgroundColor: const Color(0xFF1A1D2E),
                     leading: IconButton(
@@ -168,21 +198,31 @@ class CourseDetailsViewState extends State<CourseDetailsView>
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(
+                                          Icon(
                                             Icons.lock_person_rounded,
                                             color: Colors.white,
-                                            size: 48,
+                                            size: stv(
+                                              context: context,
+                                              mobile: 48.sw,
+                                              tablet: 58.sw,
+                                              desktop: 68.sw,
+                                            ),
                                           ),
-                                          const SizedBox(height: 12),
-                                          const Text(
+                                          SizedBox(height: 12.sh),
+                                          Text(
                                             'يتطلب اجتياز الامتحان أولاً',
                                             style: TextStyle(
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold,
-                                              fontSize: 18,
+                                              fontSize: stv(
+                                                context: context,
+                                                mobile: 18.spScaled,
+                                                tablet: 22.spScaled,
+                                                desktop: 26.spScaled,
+                                              ),
                                             ),
                                           ),
-                                          const SizedBox(height: 12),
+                                          SizedBox(height: 12.sh),
                                           ElevatedButton.icon(
                                             onPressed: () => handleVideoTap(
                                               context: context,
@@ -226,7 +266,14 @@ class CourseDetailsViewState extends State<CourseDetailsView>
                                   ] else ...[
                                     Center(
                                       child: Container(
-                                        padding: const EdgeInsets.all(16),
+                                        padding: EdgeInsets.all(
+                                          stv(
+                                            context: context,
+                                            mobile: 16.sw,
+                                            tablet: 20.sw,
+                                            desktop: 24.sw,
+                                          ),
+                                        ),
                                         decoration: BoxDecoration(
                                           color:
                                               (state.isUnlocked ||
@@ -254,7 +301,12 @@ class CourseDetailsViewState extends State<CourseDetailsView>
                                               ? Icons.play_arrow_rounded
                                               : Icons.lock_rounded,
                                           color: Colors.white,
-                                          size: 40,
+                                          size: stv(
+                                            context: context,
+                                            mobile: 40.sw,
+                                            tablet: 50.sw,
+                                            desktop: 60.sw,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -420,7 +472,14 @@ class CourseDetailsViewState extends State<CourseDetailsView>
                 left: 0,
                 right: 0,
                 child: Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(
+                    stv(
+                      context: context,
+                      mobile: 20.sw,
+                      tablet: 24.sw,
+                      desktop: 32.sw,
+                    ),
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     boxShadow: [
@@ -449,7 +508,14 @@ class CourseDetailsViewState extends State<CourseDetailsView>
                                 ? const Color(0xFFFF6B35)
                                 : const Color(0xFF4CAF50))
                           : const Color(0xFF335EF7),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(
+                        vertical: stv(
+                          context: context,
+                          mobile: 16.sh,
+                          tablet: 20.sh,
+                          desktop: 24.sh,
+                        ),
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -465,9 +531,14 @@ class CourseDetailsViewState extends State<CourseDetailsView>
                                     : Icons.play_circle_fill_rounded)
                               : Icons.shopping_cart_rounded,
                           color: Colors.white,
-                          size: 22,
+                          size: stv(
+                            context: context,
+                            mobile: 22.sw,
+                            tablet: 26.sw,
+                            desktop: 30.sw,
+                          ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8.sw),
                         Text(
                           (state.isUnlocked || widget.lesson.price == 0)
                               ? (widget.lesson.requiresExam &&
@@ -475,8 +546,13 @@ class CourseDetailsViewState extends State<CourseDetailsView>
                                     ? 'امتحان قبلي مطلوب - ابدأ الآن'
                                     : 'مشاهدة الفيديو')
                               : 'اشتراك - ${(widget.lesson.hasDiscount && widget.lesson.discountPrice != null) ? widget.lesson.discountPrice!.toStringAsFixed(0) : widget.lesson.price.toStringAsFixed(0)} ج.م',
-                          style: const TextStyle(
-                            fontSize: 16,
+                          style: TextStyle(
+                            fontSize: stv(
+                              context: context,
+                              mobile: 16.spScaled,
+                              tablet: 18.spScaled,
+                              desktop: 20.spScaled,
+                            ),
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),

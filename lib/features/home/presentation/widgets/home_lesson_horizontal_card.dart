@@ -1,6 +1,9 @@
 import 'package:alaref/features/admin/dashBoard/data/models/lesson_model.dart';
+import 'package:alaref/features/courses/presentation/pages/course_subject_details_screen.dart';
 import 'package:alaref/features/home/presentation/screens/course_details_screen.dart';
+import 'package:alaref/features/packages/presentation/pages/package_details_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:responsive_screen_master/responsive_screen_master.dart';
 
 class HomeLessonHorizontalCard extends StatelessWidget {
   final LessonModel lesson;
@@ -11,28 +14,44 @@ class HomeLessonHorizontalCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       // Width only set when used in horizontal scroll via parent
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: EdgeInsets.only(bottom: 8.sh),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20.sw),
         border: Border.all(color: Colors.grey.withOpacity(0.15)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 10.sw,
+            offset: Offset(0, 4.sh),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20.sw),
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(20.sw),
           onTap: () {
             Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => CourseDetailsScreen(lesson: lesson),
+              PageRouteBuilder(
+                transitionDuration: const Duration(milliseconds: 350),
+                reverseTransitionDuration: const Duration(milliseconds: 300),
+                pageBuilder: (_, __, ___) {
+                  if (lesson.isCourse == true) {
+                    return CourseSubjectDetailsScreen(course: lesson);
+                  }
+                  if (lesson.isPackage == true) {
+                    return PackageDetailsScreen(package: lesson);
+                  }
+                  return CourseDetailsScreen(lesson: lesson);
+                },
+                transitionsBuilder: (_, animation, __, child) {
+                  return FadeTransition(
+                    opacity: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+                    child: child,
+                  );
+                },
               ),
             );
           },
@@ -40,15 +59,19 @@ class HomeLessonHorizontalCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 1. Image & Badges
+              // 1. Image & Badges (fixed height)
               Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(20),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20.sw),
                     ),
                     child: SizedBox(
-                      height: 150,
+                      height: otv(
+                        context: context,
+                        portrait: 200.sh,
+                        landscape: 240.sh,
+                      ),
                       width: double.infinity,
                       child:
                           (lesson.imageUrl.isNotEmpty &&
@@ -56,6 +79,8 @@ class HomeLessonHorizontalCard extends StatelessWidget {
                           ? Image.network(
                               lesson.imageUrl,
                               fit: BoxFit.cover,
+                              cacheWidth: 600,
+                              gaplessPlayback: true,
                               errorBuilder: (_, __, ___) => _buildPlaceholder(),
                             )
                           : _buildPlaceholder(),
@@ -65,8 +90,8 @@ class HomeLessonHorizontalCard extends StatelessWidget {
                   Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(20),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(20.sw),
                         ),
                         gradient: LinearGradient(
                           colors: [
@@ -80,33 +105,41 @@ class HomeLessonHorizontalCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Package Badge
-                  if (lesson.isPackage)
+                  // Package / Course badge (كورس = مادة + حصص)
+                  if (lesson.isPackage == true || lesson.isCourse == true)
                     Positioned(
-                      top: 12,
-                      right: 12,
+                      top: 12.sh,
+                      right: 12.sw,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10.sw,
+                          vertical: 6.sh,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE91E63),
-                          borderRadius: BorderRadius.circular(12),
+                          color: lesson.isCourse == true
+                              ? const Color(0xFF335EF7)
+                              : const Color(0xFFE91E63),
+                          borderRadius: BorderRadius.circular(12.sw),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
-                              Icons.layers_rounded,
+                            Icon(
+                              lesson.isCourse == true
+                                  ? Icons.menu_book_rounded
+                                  : Icons.layers_rounded,
                               color: Colors.white,
-                              size: 14,
+                              size: 14.sw,
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: 4.sw),
                             Text(
-                              'باقة (${lesson.packageItems.length} حصص)',
-                              style: const TextStyle(
-                                fontSize: 12,
+                              lesson.isCourse == true
+                                  ? (lesson.packageItems.isEmpty
+                                      ? 'مادة — لا حصص بعد'
+                                      : 'مادة (${lesson.packageItems.length} حصص)')
+                                  : 'باقة (${lesson.packageItems.length} حصص)',
+                              style: TextStyle(
+                                fontSize: 12.spScaled,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
@@ -117,17 +150,24 @@ class HomeLessonHorizontalCard extends StatelessWidget {
                     ),
                 ],
               ),
+              _buildCardContent(context),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-              // 2. Content
-              Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+  Widget _buildCardContent(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 14.sw, vertical: 8.sh),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
                         // Title and Meta
                         Expanded(
                           child: Column(
@@ -136,43 +176,43 @@ class HomeLessonHorizontalCard extends StatelessWidget {
                             children: [
                               Text(
                                 lesson.title,
-                                style: const TextStyle(
-                                  fontSize: 16,
+                                style: TextStyle(
+                                  fontSize: 16.spScaled,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1A1D2E),
+                                  color: const Color(0xFF1A1D2E),
                                   height: 1.3,
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(height: 6),
+                              SizedBox(height: 4.sh),
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8.sw,
+                                  vertical: 3.sh,
                                 ),
                                 decoration: BoxDecoration(
                                   color: const Color(
                                     0xFF335EF7,
                                   ).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(6),
+                                  borderRadius: BorderRadius.circular(6.sw),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.school_rounded,
-                                      size: 13,
-                                      color: Color(0xFF335EF7),
+                                      size: 13.sw,
+                                      color: const Color(0xFF335EF7),
                                     ),
-                                    const SizedBox(width: 4),
+                                    SizedBox(width: 4.sw),
                                     Flexible(
                                       child: Text(
                                         lesson.teacherName,
-                                        style: const TextStyle(
-                                          fontSize: 11,
+                                        style: TextStyle(
+                                          fontSize: 11.spScaled,
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF335EF7),
+                                          color: const Color(0xFF335EF7),
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -184,17 +224,17 @@ class HomeLessonHorizontalCard extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        SizedBox(width: 10.sw),
                         // Price
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text(
+                            Text(
                               'السعر',
                               style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey,
+                                fontSize: 10.spScaled,
+                                color: Colors.grey[500],
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -202,15 +242,15 @@ class HomeLessonHorizontalCard extends StatelessWidget {
                                 lesson.discountPrice != null) ...[
                               Text(
                                 '${lesson.price.toStringAsFixed(0)} ج.م',
-                                style: const TextStyle(
-                                  fontSize: 12,
+                                style: TextStyle(
+                                  fontSize: 12.spScaled,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.grey,
+                                  color: Colors.grey[500],
                                   decoration: TextDecoration.lineThrough,
                                   height: 1.2,
                                 ),
                               ),
-                              const SizedBox(height: 2),
+                              SizedBox(height: 2.sh),
                             ],
                             Row(
                               mainAxisSize: MainAxisSize.min,
@@ -220,20 +260,20 @@ class HomeLessonHorizontalCard extends StatelessWidget {
                                           lesson.discountPrice != null
                                       ? lesson.discountPrice!.toStringAsFixed(0)
                                       : lesson.price.toStringAsFixed(0),
-                                  style: const TextStyle(
-                                    fontSize: 20,
+                                  style: TextStyle(
+                                    fontSize: 20.spScaled,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFFFF9800),
+                                    color: const Color(0xFFFF9800),
                                     height: 1.2,
                                   ),
                                 ),
-                                const SizedBox(width: 3),
-                                const Text(
+                                SizedBox(width: 3.sw),
+                                Text(
                                   'ج.م',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 12.spScaled,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFFFF9800),
+                                    color: const Color(0xFFFF9800),
                                   ),
                                 ),
                               ],
@@ -242,20 +282,20 @@ class HomeLessonHorizontalCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 4.sh),
                     Text(
                       lesson.description,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 12.spScaled,
                         color: Colors.grey[600],
                         height: 1.4,
                       ),
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 6.sh),
                     const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 4.sh),
 
                     // Action Button
                     SizedBox(
@@ -267,36 +307,46 @@ class HomeLessonHorizontalCard extends StatelessWidget {
                           ).withOpacity(0.05),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(10.sw),
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          padding: EdgeInsets.symmetric(vertical: 6.sh),
                         ),
                         onPressed: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  CourseDetailsScreen(lesson: lesson),
+                            PageRouteBuilder(
+                              transitionDuration: const Duration(milliseconds: 350),
+                              reverseTransitionDuration: const Duration(milliseconds: 300),
+                        pageBuilder: (_, __, ___) {
+                          if (lesson.isCourse == true) {
+                            return CourseSubjectDetailsScreen(course: lesson);
+                          }
+                          if (lesson.isPackage == true) {
+                            return PackageDetailsScreen(package: lesson);
+                          }
+                          return CourseDetailsScreen(lesson: lesson);
+                        },
+                              transitionsBuilder: (_, animation, __, child) {
+                                return FadeTransition(
+                                  opacity: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+                                  child: child,
+                                );
+                              },
                             ),
                           );
                         },
-                        child: const Text(
+                        child: Text(
                           'عرض التفاصيل',
                           style: TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF335EF7),
+                            fontSize: 13.spScaled,
+                            color: const Color(0xFF335EF7),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildPlaceholder() {
@@ -308,13 +358,13 @@ class HomeLessonHorizontalCard extends StatelessWidget {
           children: [
             Icon(
               Icons.video_library_rounded,
-              size: 40,
+              size: 40.sw,
               color: Colors.grey[300],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.sh),
             Text(
               'لا توجد صورة',
-              style: TextStyle(color: Colors.grey[400], fontSize: 13),
+              style: TextStyle(color: Colors.grey[400], fontSize: 13.spScaled),
             ),
           ],
         ),

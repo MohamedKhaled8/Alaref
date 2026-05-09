@@ -9,6 +9,7 @@ class UserEntity extends Equatable {
   final String phone;
   final String parentPhone;
   final AcademicStage stage;
+  final String studentCode;
   final String password;
 
   const UserEntity({
@@ -18,6 +19,7 @@ class UserEntity extends Equatable {
     required this.phone,
     required this.parentPhone,
     required this.stage,
+    required this.studentCode,
     required this.password,
   });
 

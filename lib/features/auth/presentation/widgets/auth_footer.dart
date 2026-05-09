@@ -22,13 +22,13 @@ class AuthFooter extends StatelessWidget {
         text: TextSpan(
           text: leadingText,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: const Color(0xFF6C7589),
+            color: const Color(0xFF64748B),
           ),
           children: [
             TextSpan(
               text: actionText,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: const Color(0xFF1363DF),
+                color: const Color(0xFF0D9488),
                 fontWeight: FontWeight.w700,
               ),
               recognizer: TapGestureRecognizer()..onTap = onActionTap,

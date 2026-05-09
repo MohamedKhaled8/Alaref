@@ -13,6 +13,9 @@ abstract class ColorsManager {
   static const teal = Colors.teal;
   static const scaffolColor = Color.fromARGB(255, 1, 18, 28);
   static const Color lightBlue = Color(0xFF80D8FF); // Add lightBlue
+  static const Color sideMenuAccent = Color(0xFF4A65FF);
+  static const Color sideMenuBackground = Color(0xFF1A1D2E);
+  static const Color homeScaffoldBackground = Color(0xFFF2F5FA);
   static const black = Colors.black;
   static const black87 = Colors.black87;
   static const mainColor = Color(0xFF011520);

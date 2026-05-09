@@ -6,7 +6,7 @@ import 'package:alaref/core/Router/routes.dart';
 import '../cubit/dashboard_cubit.dart';
 import 'admin_users_page.dart';
 import 'admin_teachers_page.dart';
-import 'admin_courses_videos_page.dart';
+import 'admin_courses_videos_page.dart' show AdminCoursesVideosPage, AdminLibraryTab;
 import 'admin_codes_page.dart';
 import 'admin_exams_settings_page.dart';
 import 'admin_statistics_page.dart';
@@ -42,7 +42,8 @@ class _AdminDashboardViewState extends State<_AdminDashboardView>
     AdminStatisticsPage(onNavigate: _switchPage),
     const AdminUsersPage(),
     const AdminTeachersPage(),
-    const AdminCoursesVideosPage(),
+    const AdminCoursesVideosPage(tab: AdminLibraryTab.courses),
+    const AdminCoursesVideosPage(tab: AdminLibraryTab.packages),
     const AdminCodesPage(),
     const AdminExamsSettingsPage(),
   ];
@@ -51,7 +52,8 @@ class _AdminDashboardViewState extends State<_AdminDashboardView>
     {'icon': Icons.dashboard_rounded, 'label': 'الإحصائيات'},
     {'icon': Icons.people_alt_rounded, 'label': 'المستخدمين'},
     {'icon': Icons.person_add_rounded, 'label': 'المدرسين'},
-    {'icon': Icons.video_library_rounded, 'label': 'الكورسات'},
+    {'icon': Icons.menu_book_rounded, 'label': 'الكورسات'},
+    {'icon': Icons.inventory_2_outlined, 'label': 'الباقات'},
     {'icon': Icons.qr_code_rounded, 'label': 'الأكواد'},
     {'icon': Icons.quiz_rounded, 'label': 'الامتحانات'},
   ];

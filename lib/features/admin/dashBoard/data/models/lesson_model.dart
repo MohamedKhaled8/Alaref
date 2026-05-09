@@ -12,6 +12,7 @@ class LessonModel {
   final String teacherId;
   final String teacherName;
   final bool isPackage;
+  final bool isCourse;
   final String stage; // primary, preparatory, secondary
   final DateTime createdAt;
   final List<PackageItem> packageItems;
@@ -34,6 +35,7 @@ class LessonModel {
     required this.teacherId,
     required this.teacherName,
     this.isPackage = false,
+    this.isCourse = false,
     required this.stage,
     required this.createdAt,
     this.packageItems = const [],
@@ -47,19 +49,20 @@ class LessonModel {
   factory LessonModel.fromMap(Map<String, dynamic> map, String id) {
     return LessonModel(
       id: id,
-      title: map['title'] ?? '',
-      description: map['description'] ?? '',
-      imageUrl: map['imageUrl'] ?? '',
-      videoUrl: map['videoUrl'] ?? '',
+      title: map['title']?.toString() ?? '',
+      description: map['description']?.toString() ?? '',
+      imageUrl: map['imageUrl']?.toString() ?? '',
+      videoUrl: map['videoUrl']?.toString() ?? '',
       price: (map['price'] ?? 0).toDouble(),
       discountPrice: map['discountPrice'] != null
           ? (map['discountPrice']).toDouble()
           : null,
-      hasDiscount: map['hasDiscount'] ?? false,
-      teacherId: map['teacherId'] ?? '',
-      teacherName: map['teacherName'] ?? '',
-      isPackage: map['isPackage'] ?? false,
-      stage: map['stage'] ?? 'primary',
+      hasDiscount: map['hasDiscount'] == true,
+      teacherId: map['teacherId']?.toString() ?? '',
+      teacherName: map['teacherName']?.toString() ?? '',
+      isPackage: map['isPackage'] == true,
+      isCourse: map['isCourse'] == true,
+      stage: map['stage']?.toString() ?? 'primary',
       createdAt: map['createdAt'] != null
           ? (map['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
@@ -73,8 +76,8 @@ class LessonModel {
           : [],
       isActive: map['isActive'] ?? true,
       studentsCount: map['studentsCount'] ?? 0,
-      requiresExam: map['requiresExam'] ?? false,
-      prerequisiteExamId: map['prerequisiteExamId'],
+      requiresExam: map['requiresExam'] == true,
+      prerequisiteExamId: map['prerequisiteExamId']?.toString(),
       minimumPassScore: map['minimumPassScore'] ?? 50,
     );
   }
@@ -91,6 +94,7 @@ class LessonModel {
       'teacherId': teacherId,
       'teacherName': teacherName,
       'isPackage': isPackage,
+      'isCourse': isCourse,
       'stage': stage,
       'createdAt': FieldValue.serverTimestamp(),
       'packageItems': packageItems.map((e) => e.toMap()).toList(),
@@ -114,6 +118,7 @@ class LessonModel {
     String? teacherId,
     String? teacherName,
     bool? isPackage,
+    bool? isCourse,
     String? stage,
     DateTime? createdAt,
     List<PackageItem>? packageItems,
@@ -135,6 +140,7 @@ class LessonModel {
       teacherId: teacherId ?? this.teacherId,
       teacherName: teacherName ?? this.teacherName,
       isPackage: isPackage ?? this.isPackage,
+      isCourse: isCourse ?? this.isCourse,
       stage: stage ?? this.stage,
       createdAt: createdAt ?? this.createdAt,
       packageItems: packageItems ?? this.packageItems,

@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:responsive_screen_master/responsive_screen_master.dart';
 import 'icon_circle_button.dart';
 
 class HomeWelcomeHeader extends StatelessWidget {
   final String greeting;
+  final VoidCallback? onMenuTap;
 
-  const HomeWelcomeHeader({super.key, required this.greeting});
+  const HomeWelcomeHeader({super.key, required this.greeting, this.onMenuTap});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 22),
+      padding: EdgeInsets.symmetric(horizontal: 22.sw),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -29,15 +31,15 @@ class HomeWelcomeHeader extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const CircleAvatar(
-                  radius: 28,
-                  backgroundColor: Color(0xFFE8EEFF),
-                  backgroundImage: NetworkImage(
+                child: CircleAvatar(
+                  radius: 28.sw,
+                  backgroundColor: const Color(0xFFE8EEFF),
+                  backgroundImage: const NetworkImage(
                     'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop',
                   ),
                 ),
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: 14.sw),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -45,11 +47,11 @@ class HomeWelcomeHeader extends StatelessWidget {
                     greeting,
                     style: TextStyle(
                       color: Colors.grey[600],
-                      fontSize: 13,
+                      fontSize: 13.spScaled,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2.sh),
                   Row(
                     children: [
                       StreamBuilder<DocumentSnapshot>(
@@ -60,12 +62,12 @@ class HomeWelcomeHeader extends StatelessWidget {
                         builder: (context, snapshot) {
                           final user = FirebaseAuth.instance.currentUser;
                           if (user == null) {
-                            return const Text(
+                            return Text(
                               'طالبنا البطل',
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: 18.spScaled,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1A1D2E),
+                                color: const Color(0xFF1A1D2E),
                                 letterSpacing: -0.3,
                               ),
                             );
@@ -89,16 +91,16 @@ class HomeWelcomeHeader extends StatelessWidget {
 
                           return Text(
                             firstName,
-                            style: const TextStyle(
-                              fontSize: 18,
+                            style: TextStyle(
+                              fontSize: 18.spScaled,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1A1D2E),
+                              color: const Color(0xFF1A1D2E),
                               letterSpacing: -0.3,
                             ),
                           );
                         },
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8.sw),
                       const _AnimatedHand(),
                     ],
                   ),
@@ -112,10 +114,10 @@ class HomeWelcomeHeader extends StatelessWidget {
                 icon: Icons.notifications_outlined,
                 onTap: () {},
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10.sw),
               IconCircleButton(
-                icon: Icons.bookmark_outline_rounded,
-                onTap: () {},
+                icon: Icons.sort_rounded, // or menu
+                onTap: onMenuTap ?? () {},
               ),
             ],
           ),
@@ -158,7 +160,7 @@ class _AnimatedHandState extends State<_AnimatedHand>
         begin: -0.05,
         end: 0.1,
       ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut)),
-      child: const Text('👋', style: TextStyle(fontSize: 18)),
+      child: Text('👋', style: TextStyle(fontSize: 18.spScaled)),
     );
   }
 }

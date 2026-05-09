@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:responsive_screen_master/responsive_screen_master.dart';
 
 class HomeCourseHorizontalCard extends StatelessWidget {
   final String imageUrl;
@@ -24,12 +25,12 @@ class HomeCourseHorizontalCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {},
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20.sw),
         child: Container(
-          width: 280,
+          width: 280.sw,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(20.sw),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.08),
@@ -47,13 +48,13 @@ class HomeCourseHorizontalCard extends StatelessWidget {
                 ),
                 child: Image.network(
                   imageUrl,
-                  height: 130,
+                  height: 180.sh,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(14),
+                padding: EdgeInsets.all(14.sw),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -66,13 +67,13 @@ class HomeCourseHorizontalCard extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: const Color(0xFF335EF7).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(10.sw),
                           ),
                           child: Text(
                             category,
-                            style: const TextStyle(
-                              color: Color(0xFF335EF7),
-                              fontSize: 12,
+                            style: TextStyle(
+                              color: const Color(0xFF335EF7),
+                              fontSize: 12.spScaled,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -81,7 +82,7 @@ class HomeCourseHorizontalCard extends StatelessWidget {
                         Text(
                           lessons,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 12.spScaled,
                             color: Colors.grey[600],
                           ),
                         ),
@@ -90,10 +91,10 @@ class HomeCourseHorizontalCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 14,
+                      style: TextStyle(
+                        fontSize: 14.spScaled,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1D2E),
+                        color: const Color(0xFF1A1D2E),
                         height: 1.3,
                       ),
                       maxLines: 2,
@@ -102,7 +103,7 @@ class HomeCourseHorizontalCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       instructor,
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 12.spScaled, color: Colors.grey[600]),
                     ),
                     if (progress > 0) ...[
                       const SizedBox(height: 8),

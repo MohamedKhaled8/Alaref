@@ -16,7 +16,7 @@ class AuthDivider extends StatelessWidget {
       children: [
         const Expanded(
           child: Divider(
-            color: Color(0xFFE0E6F3),
+            color: Color(0xFFE2E8F0),
             thickness: 1,
           ),
         ),
@@ -24,14 +24,14 @@ class AuthDivider extends StatelessWidget {
         Text(
           text,
           style: theme.textTheme.bodySmall?.copyWith(
-            color: const Color(0xFF9AA4C1),
+            color: const Color(0xFF64748B),
             fontWeight: FontWeight.w500,
           ),
         ),
         const SizedBox(width: 12),
         const Expanded(
           child: Divider(
-            color: Color(0xFFE0E6F3),
+            color: Color(0xFFE2E8F0),
             thickness: 1,
           ),
         ),

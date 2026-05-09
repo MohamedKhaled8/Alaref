@@ -129,7 +129,7 @@ class AdminStatisticsPage extends StatelessWidget {
                       else if (index == 1)
                         onNavigate!(3); // Lessons
                       else if (index == 2)
-                        onNavigate!(4); // Codes
+                        onNavigate!(5); // Codes
                     }
                   },
                   actions: [

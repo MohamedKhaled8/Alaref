@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:responsive_screen_master/responsive_screen_master.dart';
 
 class HomeSearchBar extends StatelessWidget {
   const HomeSearchBar({super.key});
@@ -6,9 +7,9 @@ class HomeSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 22),
+      padding: EdgeInsets.symmetric(horizontal: 22.sw),
       child: Container(
-        height: 52,
+        height: 52.sh,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -23,21 +24,24 @@ class HomeSearchBar extends StatelessWidget {
         child: TextField(
           decoration: InputDecoration(
             hintText: 'ابحث عن درس، مادة أو كورس...',
-            hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+            hintStyle: TextStyle(
+              color: Colors.grey[500],
+              fontSize: 14.spScaled,
+            ),
             prefixIcon: Icon(
               Icons.search_rounded,
               color: Colors.grey[500],
-              size: 24,
+              size: 24.sw,
             ),
-            suffixIcon: const Icon(
+            suffixIcon: Icon(
               Icons.tune_rounded,
-              color: Color(0xFF335EF7),
-              size: 22,
+              color: const Color(0xFF335EF7),
+              size: 22.sw,
             ),
             border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 16,
-              horizontal: 18,
+            contentPadding: EdgeInsets.symmetric(
+              vertical: 16.sh,
+              horizontal: 18.sw,
             ),
           ),
         ),

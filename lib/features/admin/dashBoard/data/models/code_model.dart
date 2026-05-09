@@ -9,6 +9,8 @@ class CodeModel {
   final bool isUsed;
   final String? usedByStudentId;
   final String? usedByStudentName;
+  final String? usedByStudentPhone;
+  final String? usedByStudentCode;
   final DateTime createdAt;
   final DateTime? usedAt;
 
@@ -21,6 +23,8 @@ class CodeModel {
     this.isUsed = false,
     this.usedByStudentId,
     this.usedByStudentName,
+    this.usedByStudentPhone,
+    this.usedByStudentCode,
     required this.createdAt,
     this.usedAt,
   });
@@ -35,6 +39,8 @@ class CodeModel {
       isUsed: map['isUsed'] ?? false,
       usedByStudentId: map['usedByStudentId'],
       usedByStudentName: map['usedByStudentName'],
+      usedByStudentPhone: map['usedByStudentPhone'],
+      usedByStudentCode: map['usedByStudentCode'],
       createdAt: map['createdAt'] != null
           ? (map['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
@@ -53,6 +59,8 @@ class CodeModel {
       'isUsed': isUsed,
       'usedByStudentId': usedByStudentId,
       'usedByStudentName': usedByStudentName,
+      'usedByStudentPhone': usedByStudentPhone,
+      'usedByStudentCode': usedByStudentCode,
       'createdAt': FieldValue.serverTimestamp(),
       'usedAt': usedAt != null ? Timestamp.fromDate(usedAt!) : null,
     };
