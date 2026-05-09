@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:responsive_screen_master/responsive_screen_master.dart';
 import 'package:alaref/features/lessons/presentation/manager/lessons_cubit.dart';
 import 'package:alaref/features/lessons/presentation/manager/lessons_state.dart';
-import 'package:alaref/features/admin/dashBoard/data/models/lesson_model.dart';
 import 'home_lesson_horizontal_card.dart';
 
 import 'package:alaref/core/utils/di/get_it.dart';
@@ -18,89 +17,94 @@ class HomeRecommendedSection extends StatelessWidget {
       create: (_) => sl<LessonsCubit>()..loadLessons(),
       child: BlocBuilder<LessonsCubit, LessonsState>(
         builder: (context, state) {
-        var weeklyLessons = state.lessons
-            .where((l) => l.isActive == true && l.isPackage != true && l.isCourse != true)
-            .take(10)
-            .toList();
-
-        final cardWidth = stv(
-          context: context,
-          mobile: otv(context: context, portrait: 78.w, landscape: 45.w),
-          tablet: 40.w,
-          desktop: 25.w,
-        );
-
-        // Show skeleton if loading and no data yet
-        final showSkeleton = state.isLoading && weeklyLessons.isEmpty;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 22.sw),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.ondemand_video_rounded,
-                        size: 20.sw,
-                        color: const Color(0xFFE91E63),
-                      ),
-                      SizedBox(width: 8.sw),
-                      Text(
-                        'محاضرات الأسبوع',
-                        style: TextStyle(
-                          fontSize: 17.spScaled,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1A1D2E),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Text(
-                    'عرض الكل',
-                    style: TextStyle(
-                      fontSize: 13.spScaled,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF335EF7),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 16.sh),
-            if (showSkeleton)
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: EdgeInsets.only(
-                  left: 22.sw,
-                  right: 22.sw,
-                  bottom: 8.sh,
-                ),
-                child: Row(
-                  children: List.generate(
-                    3,
-                    (i) => Padding(
-                      padding: EdgeInsets.only(left: i > 0 ? 16.sw : 0),
-                      child: _SkeletonCard(width: cardWidth),
-                    ),
-                  ),
-                ),
+          var weeklyLessons = state.lessons
+              .where(
+                (l) =>
+                    l.isActive == true &&
+                    l.isPackage != true &&
+                    l.isCourse != true,
               )
-            else
-            _WeeklyLessonsCarousel(
-              weeklyLessons: weeklyLessons,
-              cardWidth: cardWidth,
-            ),
-          ],
-        );
-      },
-    ),
-  );
-}
+              .take(10)
+              .toList();
+
+          final cardWidth = stv(
+            context: context,
+            mobile: otv(context: context, portrait: 78.w, landscape: 45.w),
+            tablet: 40.w,
+            desktop: 25.w,
+          );
+
+          // Show skeleton if loading and no data yet
+          final showSkeleton = state.isLoading && weeklyLessons.isEmpty;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 22.sw),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.ondemand_video_rounded,
+                          size: 20.sw,
+                          color: const Color(0xFFE91E63),
+                        ),
+                        SizedBox(width: 8.sw),
+                        Text(
+                          'محاضرات الأسبوع',
+                          style: TextStyle(
+                            fontSize: 17.spScaled,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF1A1D2E),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      'عرض الكل',
+                      style: TextStyle(
+                        fontSize: 13.spScaled,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF335EF7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 16.sh),
+              if (showSkeleton)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.only(
+                    left: 22.sw,
+                    right: 22.sw,
+                    bottom: 8.sh,
+                  ),
+                  child: Row(
+                    children: List.generate(
+                      3,
+                      (i) => Padding(
+                        padding: EdgeInsets.only(left: i > 0 ? 16.sw : 0),
+                        child: _SkeletonCard(width: cardWidth),
+                      ),
+                    ),
+                  ),
+                )
+              else
+                _WeeklyLessonsCarousel(
+                  weeklyLessons: weeklyLessons,
+                  cardWidth: cardWidth,
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
 }
 
 class _WeeklyLessonsCarousel extends StatefulWidget {
@@ -124,7 +128,7 @@ class _WeeklyLessonsCarouselState extends State<_WeeklyLessonsCarousel> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.8);
+    _pageController = PageController(viewportFraction: 0.85);
 
     if (widget.weeklyLessons.length > 1) {
       _timer = Timer.periodic(const Duration(seconds: 4), (_) {
@@ -148,11 +152,7 @@ class _WeeklyLessonsCarouselState extends State<_WeeklyLessonsCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    final height = otv(
-      context: context,
-      portrait: 540.sh,
-      landscape: 440.sh,
-    );
+    final height = otv(context: context, portrait: 320.sh, landscape: 280.sh);
 
     return Column(
       children: [
@@ -181,9 +181,7 @@ class _WeeklyLessonsCarouselState extends State<_WeeklyLessonsCarousel> {
                   child: Center(
                     child: SizedBox(
                       width: widget.cardWidth,
-                      child: HomeLessonHorizontalCard(
-                        lesson: lesson,
-                      ),
+                      child: HomeLessonHorizontalCard(lesson: lesson),
                     ),
                   ),
                 ),
@@ -194,24 +192,21 @@ class _WeeklyLessonsCarouselState extends State<_WeeklyLessonsCarousel> {
         SizedBox(height: 10.sh),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            widget.weeklyLessons.length,
-            (index) {
-              final isActive = index == _currentPage;
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                margin: EdgeInsets.symmetric(horizontal: 3.sw),
-                height: 6.sh,
-                width: isActive ? 16.sw : 6.sw,
-                decoration: BoxDecoration(
-                  color: isActive
-                      ? const Color(0xFF335EF7)
-                      : const Color(0xFFCDD5F0),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              );
-            },
-          ),
+          children: List.generate(widget.weeklyLessons.length, (index) {
+            final isActive = index == _currentPage;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              margin: EdgeInsets.symmetric(horizontal: 3.sw),
+              height: 6.sh,
+              width: isActive ? 16.sw : 6.sw,
+              decoration: BoxDecoration(
+                color: isActive
+                    ? const Color(0xFF335EF7)
+                    : const Color(0xFFCDD5F0),
+                borderRadius: BorderRadius.circular(999),
+              ),
+            );
+          }),
         ),
       ],
     );
@@ -257,7 +252,7 @@ class _SkeletonCardState extends State<_SkeletonCard>
 
         return Container(
           width: widget.width,
-          height: otv(context: context, portrait: 180.sh, landscape: 220.sh),
+          height: otv(context: context, portrait: 140.sh, landscape: 180.sh),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),

@@ -133,11 +133,7 @@ class PackagesSectionWidget extends StatelessWidget {
     );
 
     return SizedBox(
-      height: otv(
-        context: context,
-        portrait: 540.sh,
-        landscape: 440.sh,
-      ),
+      height: otv(context: context, portrait: 320.sh, landscape: 280.sh),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),

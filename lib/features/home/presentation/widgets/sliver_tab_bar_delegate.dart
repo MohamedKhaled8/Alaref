@@ -7,9 +7,9 @@ class SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
   SliverTabBarDelegate(this.tabBar);
 
   @override
-  double get minExtent => tabBar.preferredSize.height;
+  double get minExtent => tabBar.preferredSize.height + 1;
   @override
-  double get maxExtent => tabBar.preferredSize.height;
+  double get maxExtent => tabBar.preferredSize.height + 1;
 
   @override
   Widget build(
@@ -17,7 +17,15 @@ class SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    return Container(color: Colors.white, child: tabBar);
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          tabBar,
+          Container(height: 1, color: Colors.grey.withOpacity(0.08)),
+        ],
+      ),
+    );
   }
 
   @override

@@ -16,22 +16,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:responsive_screen_master/responsive_screen_master.dart';
 
-/// الصفحة الرئيسة — تفاصيل الحصة/الباقة
+/// ========================
+/// Course Details Screen — Stateless ✓
+/// ========================
 class CourseDetailsScreen extends StatelessWidget {
   final LessonModel lesson;
 
   const CourseDetailsScreen({super.key, required this.lesson});
-
-  @override
-  Widget build(BuildContext context) {
-    // Record session automatically
-    _recordSession();
-
-    return BlocProvider(
-      create: (_) => CourseDetailsCubit(lesson: lesson)..initialize(),
-      child: CourseDetailsView(lesson: lesson),
-    );
-  }
 
   void _recordSession() {
     try {
@@ -42,41 +33,29 @@ class CourseDetailsScreen extends StatelessWidget {
         lessonImageUrl: lesson.imageUrl,
         teacherName: lesson.teacherName,
       );
-      cubit.close(); // fire-and-forget, close after recording
-    } catch (_) {
-      // Silently fail — recording is non-critical
-    }
+      cubit.close();
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _recordSession();
+
+    return BlocProvider(
+      create: (_) => CourseDetailsCubit(lesson: lesson)..initialize(),
+      child: CourseDetailsView(lesson: lesson),
+    );
   }
 }
 
-/// الـ View — تحتاج TabController فلازم StatefulWidget
-/// لكن كل الـ logic في الـ Cubit والـ functions في ملفات منفصلة
-class CourseDetailsView extends StatefulWidget {
+/// ========================
+/// Course Details View — Stateless ✓
+/// Uses DefaultTabController instead of Stateful TabController
+/// ========================
+class CourseDetailsView extends StatelessWidget {
   final LessonModel lesson;
 
   const CourseDetailsView({super.key, required this.lesson});
-
-  @override
-  State<CourseDetailsView> createState() => CourseDetailsViewState();
-}
-
-class CourseDetailsViewState extends State<CourseDetailsView>
-    with SingleTickerProviderStateMixin {
-  late TabController tabController;
-  final TextEditingController commentController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    tabController = TabController(length: 3, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    tabController.dispose();
-    commentController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +63,8 @@ class CourseDetailsViewState extends State<CourseDetailsView>
       builder: (context, state) {
         final cubit = context.read<CourseDetailsCubit>();
 
-        if (state is! CourseDetailsLoaded) {
+        // Loading states
+        if (state is! CourseDetailsLoaded || state.checkingExamStatus) {
           return const Scaffold(
             backgroundColor: Colors.white,
             body: Center(
@@ -93,18 +73,9 @@ class CourseDetailsViewState extends State<CourseDetailsView>
           );
         }
 
-        if (state.checkingExamStatus) {
-          return const Scaffold(
-            backgroundColor: Colors.white,
-            body: Center(
-              child: CircularProgressIndicator(color: Color(0xFF335EF7)),
-            ),
-          );
-        }
-
-        // Exam gate check
-        if (widget.lesson.requiresExam &&
-            widget.lesson.prerequisiteExamId != null &&
+        // Exam gate / cooldown
+        if (lesson.requiresExam &&
+            lesson.prerequisiteExamId != null &&
             !state.hasPassedExam) {
           if (state.cooldownUntil != null &&
               state.cooldownUntil!.isAfter(DateTime.now())) {
@@ -114,350 +85,297 @@ class CourseDetailsViewState extends State<CourseDetailsView>
             );
           }
           return CourseExamGateScreen(
-            lesson: widget.lesson,
-            onStartExam: () {
-              checkAndHandleExam(
-                context: context,
-                cubit: cubit,
-                examId: widget.lesson.prerequisiteExamId!,
-                minScore: widget.lesson.minimumPassScore,
-                onPassed: () => cubit.setPassedExam(),
-              );
-            },
+            lesson: lesson,
+            onStartExam: () => checkAndHandleExam(
+              context: context,
+              cubit: cubit,
+              examId: lesson.prerequisiteExamId!,
+              minScore: lesson.minimumPassScore,
+              onPassed: () => cubit.setPassedExam(),
+            ),
           );
         }
 
-        // Main content
-        return Scaffold(
-          backgroundColor: Colors.white,
-          resizeToAvoidBottomInset: false,
-          body: Stack(
-            children: [
-              CustomScrollView(
-                slivers: [
-                  // 1. Cover / Video Area
-                  SliverAppBar(
-                    expandedHeight: stv(
-                      context: context,
-                      mobile: otv(
-                        context: context,
-                        portrait: 250.sh,
-                        landscape: 300.sh,
+        // DefaultTabController replaces Stateful TabController
+        return DefaultTabController(
+          length: 3,
+          child: Scaffold(
+            backgroundColor: Colors.white,
+            resizeToAvoidBottomInset: false,
+            body: _CourseDetailsBody(
+              lesson: lesson,
+              state: state,
+              cubit: cubit,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// ========================
+/// Body — all stateless ✓
+/// ========================
+class _CourseDetailsBody extends StatelessWidget {
+  final LessonModel lesson;
+  final CourseDetailsLoaded state;
+  final CourseDetailsCubit cubit;
+
+  const _CourseDetailsBody({
+    required this.lesson,
+    required this.state,
+    required this.cubit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isFreeOrUnlocked = state.isUnlocked || lesson.price == 0;
+    final needsExam = lesson.requiresExam && !state.hasPassedExam;
+
+    return Stack(
+      children: [
+        CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // ─── 1. Video / Cover Hero ───
+            SliverAppBar(
+              expandedHeight: stv(
+                context: context,
+                mobile: otv(
+                  context: context,
+                  portrait: 260.sh,
+                  landscape: 320.sh,
+                ),
+                tablet: 360.sh,
+                desktop: 420.sh,
+              ),
+              collapsedHeight: 60.sh,
+              pinned: true,
+              stretch: true,
+              backgroundColor: const Color(0xFF1A1D2E),
+              leading: _CircularBackButton(onTap: () => Navigator.pop(context)),
+              actions: [
+                _CircularActionButton(icon: Icons.share_rounded, onTap: () {}),
+                SizedBox(width: 8.sw),
+                _CircularActionButton(
+                  icon: Icons.bookmark_border_rounded,
+                  onTap: () {},
+                ),
+                SizedBox(width: 16.sw),
+              ],
+              flexibleSpace: FlexibleSpaceBar(
+                background: state.isPlayingVideo
+                    ? YoutubePlayerView(
+                        videoId:
+                            extractYoutubeVideoId(state.currentVideoUrl) ?? '',
+                      )
+                    : _VideoCoverOverlay(
+                        lesson: lesson,
+                        state: state,
+                        cubit: cubit,
                       ),
-                      tablet: 350.sh,
-                      desktop: 400.sh,
+              ),
+            ),
+
+            // ─── 2. Info Card ───
+            SliverToBoxAdapter(
+              child: CourseInfoSection(
+                lesson: lesson,
+                currentStudentsCount: state.currentStudentsCount,
+              ),
+            ),
+
+            // ─── 3. Tab Bar ───
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: SliverTabBarDelegate(
+                TabBar(
+                  labelColor: const Color(0xFF335EF7),
+                  unselectedLabelColor: Colors.grey[400],
+                  indicatorColor: const Color(0xFF335EF7),
+                  indicatorWeight: 3,
+                  labelStyle: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14.spScaled,
+                  ),
+                  unselectedLabelStyle: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14.spScaled,
+                  ),
+                  tabs: const [
+                    Tab(text: 'نبذة'),
+                    Tab(text: 'الحصص'),
+                    Tab(text: 'التقييمات'),
+                  ],
+                ),
+              ),
+            ),
+
+            // ─── 4. Tab Content ───
+            SliverFillRemaining(
+              hasScrollBody: true,
+              child: TabBarView(
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  CourseAboutTab(
+                    lesson: lesson,
+                    teacherImageUrl: state.teacherImageUrl,
+                    teacherSubject: state.teacherSubject,
+                    isDescriptionExpanded: state.isDescriptionExpanded,
+                    onToggleDescription: cubit.toggleDescription,
+                  ),
+                  CourseLessonsTab(
+                    lesson: lesson,
+                    isUnlocked: state.isUnlocked,
+                    onPlayVideo: cubit.playVideo,
+                    onPaymentRequired: () => showPaymentRequiredSnackBar(
+                      context: context,
+                      cubit: cubit,
                     ),
-                    pinned: true,
-                    backgroundColor: const Color(0xFF1A1D2E),
-                    leading: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: state.isPlayingVideo
-                          ? YoutubePlayerView(
-                              videoId:
-                                  extractYoutubeVideoId(
-                                    state.currentVideoUrl,
-                                  ) ??
-                                  '',
-                            )
-                          : GestureDetector(
-                              onTap: () => handleVideoTap(
-                                context: context,
-                                cubit: cubit,
-                                state: state,
-                                lessonPrice: widget.lesson.price,
-                                videoUrl: widget.lesson.videoUrl,
-                                requiresExam: widget.lesson.requiresExam,
-                                prerequisiteExamId:
-                                    widget.lesson.prerequisiteExamId,
-                                minimumPassScore:
-                                    widget.lesson.minimumPassScore,
-                              ),
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  if (widget.lesson.imageUrl.startsWith('http'))
-                                    Image.network(
-                                      widget.lesson.imageUrl,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) =>
-                                          Container(color: Colors.black87),
-                                    )
-                                  else
-                                    Container(color: Colors.black87),
-                                  Container(
-                                    color: Colors.black.withOpacity(0.4),
-                                  ),
-                                  if ((state.isUnlocked ||
-                                          widget.lesson.price == 0) &&
-                                      widget.lesson.requiresExam &&
-                                      !state.hasPassedExam) ...[
-                                    Center(
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.lock_person_rounded,
-                                            color: Colors.white,
-                                            size: stv(
-                                              context: context,
-                                              mobile: 48.sw,
-                                              tablet: 58.sw,
-                                              desktop: 68.sw,
-                                            ),
-                                          ),
-                                          SizedBox(height: 12.sh),
-                                          Text(
-                                            'يتطلب اجتياز الامتحان أولاً',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: stv(
-                                                context: context,
-                                                mobile: 18.spScaled,
-                                                tablet: 22.spScaled,
-                                                desktop: 26.spScaled,
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(height: 12.sh),
-                                          ElevatedButton.icon(
-                                            onPressed: () => handleVideoTap(
-                                              context: context,
-                                              cubit: cubit,
-                                              state: state,
-                                              lessonPrice: widget.lesson.price,
-                                              videoUrl: widget.lesson.videoUrl,
-                                              requiresExam:
-                                                  widget.lesson.requiresExam,
-                                              prerequisiteExamId: widget
-                                                  .lesson
-                                                  .prerequisiteExamId,
-                                              minimumPassScore: widget
-                                                  .lesson
-                                                  .minimumPassScore,
-                                            ),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: const Color(
-                                                0xFFFF6B35,
-                                              ),
-                                              foregroundColor: Colors.white,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 24,
-                                                    vertical: 12,
-                                                  ),
-                                            ),
-                                            icon: const Icon(
-                                              Icons.quiz_rounded,
-                                            ),
-                                            label: const Text(
-                                              'افتح الامتحان',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ] else ...[
-                                    Center(
-                                      child: Container(
-                                        padding: EdgeInsets.all(
-                                          stv(
-                                            context: context,
-                                            mobile: 16.sw,
-                                            tablet: 20.sw,
-                                            desktop: 24.sw,
-                                          ),
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color:
-                                              (state.isUnlocked ||
-                                                  widget.lesson.price == 0)
-                                              ? const Color(0xFF335EF7)
-                                              : Colors.white.withOpacity(0.2),
-                                          shape: BoxShape.circle,
-                                          boxShadow:
-                                              (state.isUnlocked ||
-                                                  widget.lesson.price == 0)
-                                              ? [
-                                                  BoxShadow(
-                                                    color: const Color(
-                                                      0xFF335EF7,
-                                                    ).withOpacity(0.4),
-                                                    blurRadius: 15,
-                                                    spreadRadius: 2,
-                                                  ),
-                                                ]
-                                              : null,
-                                        ),
-                                        child: Icon(
-                                          (state.isUnlocked ||
-                                                  widget.lesson.price == 0)
-                                              ? Icons.play_arrow_rounded
-                                              : Icons.lock_rounded,
-                                          color: Colors.white,
-                                          size: stv(
-                                            context: context,
-                                            mobile: 40.sw,
-                                            tablet: 50.sw,
-                                            desktop: 60.sw,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    if (state.isUnlocked ||
-                                        widget.lesson.price == 0)
-                                      Positioned(
-                                        bottom: 12,
-                                        left: 0,
-                                        right: 0,
-                                        child: Center(
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 6,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.black.withOpacity(
-                                                0.6,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                            ),
-                                            child: const Text(
-                                              'اضغط لمشاهدة الفيديو',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ],
+                    onCheckExam:
+                        ({
+                          required examId,
+                          required minScore,
+                          required onPassed,
+                        }) {
+                          checkAndHandleExam(
+                            context: context,
+                            cubit: cubit,
+                            examId: examId,
+                            minScore: minScore,
+                            onPassed: onPassed,
+                          );
+                        },
+                  ),
+                  CourseReviewsTab(
+                    lessonId: lesson.id,
+                    onSubmitComment: cubit.submitComment,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        // ─── 5. Sticky Bottom Bar ───
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 20.sw, vertical: 16.sh),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24.sw)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 20,
+                  offset: const Offset(0, -8),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: Row(
+                children: [
+                  // Price tag (when not unlocked)
+                  if (!isFreeOrUnlocked) ...[
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'السعر',
+                          style: TextStyle(
+                            fontSize: 12.spScaled,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              '${(lesson.hasDiscount && lesson.discountPrice != null) ? lesson.discountPrice!.toStringAsFixed(0) : lesson.price.toStringAsFixed(0)}',
+                              style: TextStyle(
+                                fontSize: 22.spScaled,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF335EF7),
                               ),
                             ),
-                    ),
-                  ),
-
-                  // 2. Course Info
-                  SliverToBoxAdapter(
-                    child: CourseInfoSection(
-                      lesson: widget.lesson,
-                      currentStudentsCount: state.currentStudentsCount,
-                    ),
-                  ),
-
-                  // 3. Tab Bar
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: SliverTabBarDelegate(
-                      TabBar(
-                        controller: tabController,
-                        labelColor: const Color(0xFF335EF7),
-                        unselectedLabelColor: Colors.grey,
-                        indicatorColor: const Color(0xFF335EF7),
-                        indicatorWeight: 3,
-                        labelStyle: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
+                            SizedBox(width: 4.sw),
+                            Text(
+                              'ج.م',
+                              style: TextStyle(
+                                fontSize: 14.spScaled,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF335EF7),
+                              ),
+                            ),
+                          ],
                         ),
-                        tabs: const [
-                          Tab(text: 'About'),
-                          Tab(text: 'Lessons'),
-                          Tab(text: 'Reviews'),
-                        ],
-                      ),
+                        if (lesson.hasDiscount && lesson.discountPrice != null)
+                          Text(
+                            '${lesson.price.toStringAsFixed(0)} ج.م',
+                            style: TextStyle(
+                              fontSize: 12.spScaled,
+                              color: Colors.grey[400],
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                      ],
                     ),
-                  ),
+                    SizedBox(width: 16.sw),
+                  ],
 
-                  // 4. Tab Content
-                  SliverFillRemaining(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 100),
-                      child: TabBarView(
-                        controller: tabController,
+                  // Main CTA
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => handleVideoTap(
+                        context: context,
+                        cubit: cubit,
+                        state: state,
+                        lessonPrice: lesson.price,
+                        videoUrl: lesson.videoUrl,
+                        requiresExam: lesson.requiresExam,
+                        prerequisiteExamId: lesson.prerequisiteExamId,
+                        minimumPassScore: lesson.minimumPassScore,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isFreeOrUnlocked
+                            ? (needsExam
+                                  ? const Color(0xFFFF6B35)
+                                  : const Color(0xFF4CAF50))
+                            : const Color(0xFF335EF7),
+                        padding: EdgeInsets.symmetric(vertical: 16.sh),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16.sw),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          CourseAboutTab(
-                            lesson: widget.lesson,
-                            teacherImageUrl: state.teacherImageUrl,
-                            teacherSubject: state.teacherSubject,
-                            isDescriptionExpanded: state.isDescriptionExpanded,
-                            onToggleDescription: () =>
-                                cubit.toggleDescription(),
+                          Icon(
+                            isFreeOrUnlocked
+                                ? (needsExam
+                                      ? Icons.quiz_rounded
+                                      : Icons.play_circle_fill_rounded)
+                                : Icons.shopping_cart_rounded,
+                            color: Colors.white,
+                            size: 22.sw,
                           ),
-                          CourseLessonsTab(
-                            lesson: widget.lesson,
-                            isUnlocked: state.isUnlocked,
-                            onPlayVideo: (url) => cubit.playVideo(url),
-                            onPaymentRequired: () =>
-                                showPaymentRequiredSnackBar(
-                                  context: context,
-                                  cubit: cubit,
-                                ),
-                            onCheckExam:
-                                ({
-                                  required examId,
-                                  required minScore,
-                                  required onPassed,
-                                }) {
-                                  checkAndHandleExam(
-                                    context: context,
-                                    cubit: cubit,
-                                    examId: examId,
-                                    minScore: minScore,
-                                    onPassed: onPassed,
-                                  );
-                                },
-                          ),
-                          CourseReviewsTab(
-                            lessonId: widget.lesson.id,
-                            commentController: commentController,
-                            onSubmitComment: () async {
-                              final text = commentController.text.trim();
-                              if (text.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('اكتب تعليقك أولاً'),
-                                  ),
-                                );
-                                return;
-                              }
-                              try {
-                                await cubit.submitComment(text);
-                                commentController.clear();
-                                FocusScope.of(context).unfocus();
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: const Text(
-                                        'تم إضافة تعليقك بنجاح ✓',
-                                      ),
-                                      backgroundColor: const Color(0xFF4CAF50),
-                                      behavior: SnackBarBehavior.floating,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                  );
-                                }
-                              } catch (e) {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('خطأ في إرسال التعليق: $e'),
-                                    ),
-                                  );
-                                }
-                              }
-                            },
+                          SizedBox(width: 8.sw),
+                          Text(
+                            isFreeOrUnlocked
+                                ? (needsExam
+                                      ? 'ابدأ الامتحان'
+                                      : 'مشاهدة الفيديو')
+                                : 'اشترك الآن',
+                            style: TextStyle(
+                              fontSize: 16.spScaled,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ],
                       ),
@@ -465,107 +383,284 @@ class CourseDetailsViewState extends State<CourseDetailsView>
                   ),
                 ],
               ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
-              // 5. Sticky Bottom Button
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  padding: EdgeInsets.all(
-                    stv(
-                      context: context,
-                      mobile: 20.sw,
-                      tablet: 24.sw,
-                      desktop: 32.sw,
-                    ),
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
+/// ========================
+/// Video Cover Overlay — stateless ✓
+/// ========================
+class _VideoCoverOverlay extends StatelessWidget {
+  final LessonModel lesson;
+  final CourseDetailsLoaded state;
+  final CourseDetailsCubit cubit;
+
+  const _VideoCoverOverlay({
+    required this.lesson,
+    required this.state,
+    required this.cubit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isFreeOrUnlocked = state.isUnlocked || lesson.price == 0;
+    final needsExam = lesson.requiresExam && !state.hasPassedExam;
+
+    return GestureDetector(
+      onTap: () => handleVideoTap(
+        context: context,
+        cubit: cubit,
+        state: state,
+        lessonPrice: lesson.price,
+        videoUrl: lesson.videoUrl,
+        requiresExam: lesson.requiresExam,
+        prerequisiteExamId: lesson.prerequisiteExamId,
+        minimumPassScore: lesson.minimumPassScore,
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Background image
+          if (lesson.imageUrl.startsWith('http'))
+            Image.network(
+              lesson.imageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _fallbackBg(),
+            )
+          else
+            _fallbackBg(),
+
+          // Dark gradient overlay
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.1),
+                  Colors.black.withOpacity(0.6),
+                ],
+              ),
+            ),
+          ),
+
+          // Exam lock overlay
+          if (isFreeOrUnlocked && needsExam)
+            _ExamLockOverlay(cubit: cubit, lesson: lesson, state: state)
+          else
+            _PlayButtonOverlay(isUnlocked: isFreeOrUnlocked),
+        ],
+      ),
+    );
+  }
+
+  Widget _fallbackBg() {
+    return Container(
+      color: const Color(0xFF1A1D2E),
+      child: const Center(
+        child: Icon(Icons.video_library, color: Colors.white24, size: 64),
+      ),
+    );
+  }
+}
+
+/// ─── Play Button Overlay ───
+class _PlayButtonOverlay extends StatelessWidget {
+  final bool isUnlocked;
+  const _PlayButtonOverlay({required this.isUnlocked});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 72.sw,
+            height: 72.sw,
+            decoration: BoxDecoration(
+              color: isUnlocked
+                  ? const Color(0xFF335EF7)
+                  : Colors.white.withOpacity(0.15),
+              shape: BoxShape.circle,
+              boxShadow: isUnlocked
+                  ? [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, -5),
+                        color: const Color(0xFF335EF7).withOpacity(0.4),
+                        blurRadius: 24,
+                        spreadRadius: 4,
                       ),
-                    ],
-                  ),
-                  child: ElevatedButton(
-                    onPressed: () => handleVideoTap(
-                      context: context,
-                      cubit: cubit,
-                      state: state,
-                      lessonPrice: widget.lesson.price,
-                      videoUrl: widget.lesson.videoUrl,
-                      requiresExam: widget.lesson.requiresExam,
-                      prerequisiteExamId: widget.lesson.prerequisiteExamId,
-                      minimumPassScore: widget.lesson.minimumPassScore,
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          (state.isUnlocked || widget.lesson.price == 0)
-                          ? (widget.lesson.requiresExam && !state.hasPassedExam
-                                ? const Color(0xFFFF6B35)
-                                : const Color(0xFF4CAF50))
-                          : const Color(0xFF335EF7),
-                      padding: EdgeInsets.symmetric(
-                        vertical: stv(
-                          context: context,
-                          mobile: 16.sh,
-                          tablet: 20.sh,
-                          desktop: 24.sh,
-                        ),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          (state.isUnlocked || widget.lesson.price == 0)
-                              ? (widget.lesson.requiresExam &&
-                                        !state.hasPassedExam
-                                    ? Icons.quiz_rounded
-                                    : Icons.play_circle_fill_rounded)
-                              : Icons.shopping_cart_rounded,
-                          color: Colors.white,
-                          size: stv(
-                            context: context,
-                            mobile: 22.sw,
-                            tablet: 26.sw,
-                            desktop: 30.sw,
-                          ),
-                        ),
-                        SizedBox(width: 8.sw),
-                        Text(
-                          (state.isUnlocked || widget.lesson.price == 0)
-                              ? (widget.lesson.requiresExam &&
-                                        !state.hasPassedExam
-                                    ? 'امتحان قبلي مطلوب - ابدأ الآن'
-                                    : 'مشاهدة الفيديو')
-                              : 'اشتراك - ${(widget.lesson.hasDiscount && widget.lesson.discountPrice != null) ? widget.lesson.discountPrice!.toStringAsFixed(0) : widget.lesson.price.toStringAsFixed(0)} ج.م',
-                          style: TextStyle(
-                            fontSize: stv(
-                              context: context,
-                              mobile: 16.spScaled,
-                              tablet: 18.spScaled,
-                              desktop: 20.spScaled,
-                            ),
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                    ]
+                  : null,
+              border: isUnlocked
+                  ? null
+                  : Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+            ),
+            child: Center(
+              child: Icon(
+                isUnlocked ? Icons.play_arrow_rounded : Icons.lock_rounded,
+                color: Colors.white,
+                size: 36.sw,
+              ),
+            ),
+          ),
+          if (isUnlocked) ...[
+            SizedBox(height: 12.sh),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.sw, vertical: 6.sh),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                'اضغط للمشاهدة',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13.spScaled,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-            ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// ─── Exam Lock Overlay ───
+class _ExamLockOverlay extends StatelessWidget {
+  final CourseDetailsCubit cubit;
+  final LessonModel lesson;
+  final CourseDetailsLoaded state;
+
+  const _ExamLockOverlay({
+    required this.cubit,
+    required this.lesson,
+    required this.state,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 32.sw),
+        padding: EdgeInsets.all(24.sw),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(24.sw),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.lock_person_rounded, color: Colors.white, size: 48.sw),
+            SizedBox(height: 16.sh),
+            Text(
+              'يتطلب اجتياز الامتحان أولاً',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 18.spScaled,
+              ),
+            ),
+            SizedBox(height: 8.sh),
+            Text(
+              'يجب الحصول على ${lesson.minimumPassScore}% على الأقل',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.7),
+                fontSize: 13.spScaled,
+              ),
+            ),
+            SizedBox(height: 20.sh),
+            ElevatedButton.icon(
+              onPressed: () => handleVideoTap(
+                context: context,
+                cubit: cubit,
+                state: state,
+                lessonPrice: lesson.price,
+                videoUrl: lesson.videoUrl,
+                requiresExam: lesson.requiresExam,
+                prerequisiteExamId: lesson.prerequisiteExamId,
+                minimumPassScore: lesson.minimumPassScore,
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF6B35),
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 24.sw,
+                  vertical: 12.sh,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.sw),
+                ),
+              ),
+              icon: const Icon(Icons.quiz_rounded),
+              label: Text(
+                'افتح الامتحان',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14.spScaled,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// ─── Circular Back Button ───
+class _CircularBackButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _CircularBackButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(left: 12.sw),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 40.sw,
+          height: 40.sw,
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.3),
+            shape: BoxShape.circle,
           ),
-        );
-      },
+          child: Icon(Icons.arrow_back, color: Colors.white, size: 20.sw),
+        ),
+      ),
+    );
+  }
+}
+
+/// ─── Circular Action Button ───
+class _CircularActionButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _CircularActionButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40.sw,
+        height: 40.sw,
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.3),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: Colors.white, size: 20.sw),
+      ),
     );
   }
 }

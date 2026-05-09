@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:alaref/features/admin/dashBoard/data/models/lesson_model.dart';
+import 'package:responsive_screen_master/responsive_screen_master.dart';
 
 class CourseLessonsTab extends StatelessWidget {
   final LessonModel lesson;
@@ -27,117 +28,126 @@ class CourseLessonsTab extends StatelessWidget {
     final isPackage = lesson.isPackage;
     final itemsCount = isPackage ? lesson.packageItems.length : 1;
 
-    return ListView(
-      padding: const EdgeInsets.all(20),
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(20.sw),
       physics: const NeverScrollableScrollPhysics(),
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '$itemsCount Lessons',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1A1D2E),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ─── Header ───
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '$itemsCount حصة',
+                style: TextStyle(
+                  fontSize: 17.spScaled,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF1A1D2E),
+                ),
               ),
-            ),
-            const Text(
-              'See All',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF335EF7),
+              Text(
+                'عرض الكل',
+                style: TextStyle(
+                  fontSize: 13.spScaled,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF335EF7),
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
+            ],
+          ),
+          SizedBox(height: 16.sh),
 
-        const Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Section 1 - Introduction',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1A1D2E),
+          // ─── Progress bar (decorative) ───
+          Container(
+            height: 6.sh,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F2FF),
+              borderRadius: BorderRadius.circular(3.sh),
+            ),
+            child: FractionallySizedBox(
+              widthFactor: isUnlocked || lesson.price == 0 ? 0.35 : 0.0,
+              alignment: Alignment.centerLeft,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF335EF7), Color(0xFF7B8FF7)],
+                  ),
+                  borderRadius: BorderRadius.circular(3.sh),
+                ),
               ),
             ),
-            Text(
-              '15 mins',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF335EF7),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
+          ),
+          SizedBox(height: 4.sh),
+          Text(
+            isUnlocked || lesson.price == 0 ? '35% تم إنجازه' : 'اشترك للبدء',
+            style: TextStyle(fontSize: 12.spScaled, color: Colors.grey[400]),
+          ),
+          SizedBox(height: 20.sh),
 
-        if (isPackage)
-          ...lesson.packageItems.asMap().entries.map((entry) {
-            int index = entry.key;
-            var item = entry.value;
-            bool isLocked = !isUnlocked && lesson.price > 0 && index > 0;
-            return LessonTileItem(
-              index: index + 1,
-              title: item.title,
-              duration: '10 mins',
-              isLocked: isLocked,
-              videoUrl: item.videoUrl,
-              requiresExam: item.requiresExam,
-              examId: item.prerequisiteExamId,
-              minScore: item.minimumPassScore,
+          // ─── Lessons List ───
+          if (isPackage)
+            ...lesson.packageItems.asMap().entries.map((entry) {
+              int index = entry.key;
+              var item = entry.value;
+              bool isLocked = !isUnlocked && lesson.price > 0 && index > 0;
+              return _LessonCard(
+                index: index + 1,
+                title: item.title,
+                duration: '10 دقيقة',
+                isLocked: isLocked,
+                videoUrl: item.videoUrl,
+                requiresExam: item.requiresExam,
+                examId: item.prerequisiteExamId,
+                minScore: item.minimumPassScore,
+                onTap: () {
+                  if (isLocked) {
+                    onPaymentRequired();
+                  } else if (item.requiresExam &&
+                      item.prerequisiteExamId != null) {
+                    onCheckExam(
+                      examId: item.prerequisiteExamId!,
+                      minScore: item.minimumPassScore,
+                      onPassed: () => onPlayVideo(item.videoUrl),
+                    );
+                  } else {
+                    onPlayVideo(item.videoUrl);
+                  }
+                },
+              );
+            })
+          else
+            _LessonCard(
+              index: 1,
+              title: lesson.title,
+              duration: '15 دقيقة',
+              isLocked: !isUnlocked && lesson.price > 0,
+              videoUrl: lesson.videoUrl,
+              requiresExam: lesson.requiresExam,
+              examId: lesson.prerequisiteExamId,
+              minScore: lesson.minimumPassScore,
               onTap: () {
-                if (isLocked) {
+                if (!isUnlocked && lesson.price > 0) {
                   onPaymentRequired();
-                } else if (item.requiresExam &&
-                    item.prerequisiteExamId != null) {
+                } else if (lesson.requiresExam &&
+                    lesson.prerequisiteExamId != null) {
                   onCheckExam(
-                    examId: item.prerequisiteExamId!,
-                    minScore: item.minimumPassScore,
-                    onPassed: () => onPlayVideo(item.videoUrl),
+                    examId: lesson.prerequisiteExamId!,
+                    minScore: lesson.minimumPassScore,
+                    onPassed: () => onPlayVideo(lesson.videoUrl),
                   );
                 } else {
-                  onPlayVideo(item.videoUrl);
+                  onPlayVideo(lesson.videoUrl);
                 }
               },
-            );
-          }).toList()
-        else
-          LessonTileItem(
-            index: 1,
-            title: lesson.title,
-            duration: '15 mins',
-            isLocked: !isUnlocked && lesson.price > 0,
-            videoUrl: lesson.videoUrl,
-            requiresExam: lesson.requiresExam,
-            examId: lesson.prerequisiteExamId,
-            minScore: lesson.minimumPassScore,
-            onTap: () {
-              if (!isUnlocked && lesson.price > 0) {
-                onPaymentRequired();
-              } else if (lesson.requiresExam &&
-                  lesson.prerequisiteExamId != null) {
-                onCheckExam(
-                  examId: lesson.prerequisiteExamId!,
-                  minScore: lesson.minimumPassScore,
-                  onPassed: () => onPlayVideo(lesson.videoUrl),
-                );
-              } else {
-                onPlayVideo(lesson.videoUrl);
-              }
-            },
-          ),
-      ],
+            ),
+        ],
+      ),
     );
   }
 }
 
-class LessonTileItem extends StatelessWidget {
+class _LessonCard extends StatelessWidget {
   final int index;
   final String title;
   final String duration;
@@ -148,8 +158,7 @@ class LessonTileItem extends StatelessWidget {
   final int minScore;
   final VoidCallback onTap;
 
-  const LessonTileItem({
-    super.key,
+  const _LessonCard({
     required this.index,
     required this.title,
     required this.duration,
@@ -166,91 +175,113 @@ class LessonTileItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
+        margin: EdgeInsets.only(bottom: 12.sh),
+        padding: EdgeInsets.all(16.sw),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.withOpacity(0.2)),
+          borderRadius: BorderRadius.circular(20.sw),
+          border: Border.all(
+            color: isLocked
+                ? Colors.grey.withOpacity(0.1)
+                : const Color(0xFF335EF7).withOpacity(0.1),
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Row(
           children: [
+            // Index circle
             Container(
-              width: 40,
-              height: 40,
+              width: 44.sw,
+              height: 44.sw,
               decoration: BoxDecoration(
-                color: isLocked
-                    ? Colors.grey[100]
-                    : const Color(0xFF335EF7).withOpacity(0.1),
+                gradient: isLocked
+                    ? null
+                    : const LinearGradient(
+                        colors: [Color(0xFF335EF7), Color(0xFF7B8FF7)],
+                      ),
+                color: isLocked ? const Color(0xFFF5F5F5) : null,
                 shape: BoxShape.circle,
               ),
               child: Center(
-                child: Text(
-                  index.toString().padLeft(2, '0'),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: isLocked ? Colors.grey : const Color(0xFF335EF7),
-                  ),
-                ),
+                child: isLocked
+                    ? Icon(
+                        Icons.lock_outline,
+                        color: Colors.grey[400],
+                        size: 18.sw,
+                      )
+                    : Text(
+                        index.toString().padLeft(2, '0'),
+                        style: TextStyle(
+                          fontSize: 14.spScaled,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: 14.sw),
+
+            // Content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 15,
+                    style: TextStyle(
+                      fontSize: 15.spScaled,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A1D2E),
+                      color: const Color(0xFF1A1D2E),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 6.sh),
                   Row(
                     children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 12.sw,
+                        color: Colors.grey[400],
+                      ),
+                      SizedBox(width: 4.sw),
                       Text(
                         duration,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
+                        style: TextStyle(
+                          fontSize: 12.spScaled,
+                          color: Colors.grey[400],
                         ),
                       ),
                       if (requiresExam && examId != null) ...[
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8.sw),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.sw,
+                            vertical: 3.sh,
                           ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFF6B35).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(8.sw),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.quiz_rounded,
-                                size: 12,
-                                color: Color(0xFFFF6B35),
+                                size: 12.sw,
+                                color: const Color(0xFFFF6B35),
                               ),
-                              const SizedBox(width: 4),
+                              SizedBox(width: 4.sw),
                               Text(
-                                'امتحان قبلي ($minScore%)',
-                                style: const TextStyle(
-                                  fontSize: 10,
+                                'امتحان ($minScore%)',
+                                style: TextStyle(
+                                  fontSize: 10.spScaled,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFFFF6B35),
+                                  color: const Color(0xFFFF6B35),
                                 ),
                               ),
                             ],
@@ -262,18 +293,32 @@ class LessonTileItem extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              isLocked
-                  ? Icons.lock_outline
-                  : (requiresExam && examId != null
-                        ? Icons.quiz_outlined
-                        : Icons.play_circle_fill),
-              color: isLocked
-                  ? Colors.grey
-                  : (requiresExam && examId != null
-                        ? const Color(0xFFFF6B35)
-                        : const Color(0xFF335EF7)),
-              size: 28,
+
+            // Play icon
+            Container(
+              width: 40.sw,
+              height: 40.sw,
+              decoration: BoxDecoration(
+                color: isLocked
+                    ? Colors.grey[100]
+                    : const Color(0xFF335EF7).withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Icon(
+                  isLocked
+                      ? Icons.lock_outline
+                      : (requiresExam && examId != null
+                            ? Icons.quiz_outlined
+                            : Icons.play_arrow_rounded),
+                  color: isLocked
+                      ? Colors.grey[400]
+                      : (requiresExam && examId != null
+                            ? const Color(0xFFFF6B35)
+                            : const Color(0xFF335EF7)),
+                  size: 22.sw,
+                ),
+              ),
             ),
           ],
         ),

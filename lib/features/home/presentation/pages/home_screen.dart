@@ -53,58 +53,21 @@ class HomeScreenView extends StatelessWidget {
                 cacheExtent: 1000, // Keep off-screen widgets alive longer
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: stv(
-                        context: context,
-                        mobile: otv(
-                          context: context,
-                          portrait: 20.sh,
-                          landscape: 10.sh,
-                        ),
-                        tablet: 30.sh,
-                        desktop: 40.sh,
-                      ),
-                    ),
-                  ),
                   // —— 1. هيدر ترحيبي ——
                   SliverToBoxAdapter(
                     child: AnimatedSection(
                       visible: visibleSections > 0,
                       child: Column(
                         children: [
+                          SizedBox(height: 12.sh),
                           HomeWelcomeHeader(
                             greeting: context.read<HomeCubit>().greeting,
                             onMenuTap: context.read<HomeCubit>().toggleMenu,
                           ),
-                          SizedBox(
-                            height: stv(
-                              context: context,
-                              mobile: otv(
-                                context: context,
-                                portrait: 16.sh,
-                                landscape: 8.sh,
-                              ),
-                              tablet: 24.sh,
-                              desktop: 32.sh,
-                            ),
-                          ),
+                          SizedBox(height: 12.sh),
                           const HomeSearchBar(),
+                          SizedBox(height: 16.sh),
                         ],
-                      ),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: stv(
-                        context: context,
-                        mobile: otv(
-                          context: context,
-                          portrait: 20.sh,
-                          landscape: 10.sh,
-                        ),
-                        tablet: 30.sh,
-                        desktop: 40.sh,
                       ),
                     ),
                   ),
@@ -113,20 +76,11 @@ class HomeScreenView extends StatelessWidget {
                   SliverToBoxAdapter(
                     child: AnimatedSection(
                       visible: visibleSections > 3,
-                      child: const HomeInstructorBanner(),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: stv(
-                        context: context,
-                        mobile: otv(
-                          context: context,
-                          portrait: 24.sh,
-                          landscape: 12.sh,
-                        ),
-                        tablet: 34.sh,
-                        desktop: 44.sh,
+                      child: Column(
+                        children: [
+                          const HomeInstructorBanner(),
+                          SizedBox(height: 16.sh),
+                        ],
                       ),
                     ),
                   ),
@@ -137,22 +91,7 @@ class HomeScreenView extends StatelessWidget {
                       child: const HomeSubjectsSection(),
                     ),
                   ),
-                  SliverToBoxAdapter(child: SizedBox(height: 24.sh)),
-
-                  SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: stv(
-                        context: context,
-                        mobile: otv(
-                          context: context,
-                          portrait: 24.sh,
-                          landscape: 12.sh,
-                        ),
-                        tablet: 34.sh,
-                        desktop: 44.sh,
-                      ),
-                    ),
-                  ),
+                  SliverToBoxAdapter(child: SizedBox(height: 16.sh)),
                   // —— 8. محاضرات الأسبوع ——
                   SliverToBoxAdapter(
                     child: AnimatedSection(
@@ -160,7 +99,7 @@ class HomeScreenView extends StatelessWidget {
                       child: const HomeRecommendedSection(),
                     ),
                   ),
-                  SliverToBoxAdapter(child: SizedBox(height: 24.sh)),
+                  SliverToBoxAdapter(child: SizedBox(height: 16.sh)),
                   // —— 10. الباقات المميزة ——
                   SliverToBoxAdapter(
                     child: AnimatedSection(
@@ -168,8 +107,7 @@ class HomeScreenView extends StatelessWidget {
                       child: const PackagesSectionWidget(),
                     ),
                   ),
-                  SliverToBoxAdapter(child: SizedBox(height: 24.sh)),
-
+                  SliverToBoxAdapter(child: SizedBox(height: 16.sh)),
                   // —— 9. أحدث الحصص (Recent) ——
                   SliverToBoxAdapter(
                     child: AnimatedSection(
@@ -177,21 +115,7 @@ class HomeScreenView extends StatelessWidget {
                       child: const LatestLessonsSectionWidget(),
                     ),
                   ),
-
-                  SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: stv(
-                        context: context,
-                        mobile: otv(
-                          context: context,
-                          portrait: 32.sh,
-                          landscape: 16.sh,
-                        ),
-                        tablet: 42.sh,
-                        desktop: 52.sh,
-                      ),
-                    ),
-                  ),
+                  SliverToBoxAdapter(child: SizedBox(height: 20.sh)),
                 ],
               );
             },

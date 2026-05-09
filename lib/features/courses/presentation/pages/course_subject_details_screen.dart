@@ -1,6 +1,6 @@
 import 'package:alaref/features/admin/dashBoard/data/models/lesson_model.dart';
 import 'package:alaref/features/home/presentation/cubit/course_details_cubit.dart';
-import 'package:alaref/features/packages/presentation/pages/package_item_video_screen.dart';
+import 'package:alaref/features/video_player/presentation/pages/package_item_video_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -58,8 +58,9 @@ class _CourseSubjectDetailsViewState extends State<_CourseSubjectDetailsView> {
             content: const Text('تم تفعيل المادة بنجاح'),
             backgroundColor: const Color(0xFF4CAF50),
             behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -70,8 +71,9 @@ class _CourseSubjectDetailsViewState extends State<_CourseSubjectDetailsView> {
             content: const Text('الكود غير صالح أو مستخدم'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -87,8 +89,9 @@ class _CourseSubjectDetailsViewState extends State<_CourseSubjectDetailsView> {
       body: BlocBuilder<CourseDetailsCubit, CourseDetailsState>(
         builder: (context, state) {
           final cubit = context.read<CourseDetailsCubit>();
-          final isUnlocked =
-              state is CourseDetailsLoaded ? state.isUnlocked : false;
+          final isUnlocked = state is CourseDetailsLoaded
+              ? state.isUnlocked
+              : false;
           final isLoading = state is! CourseDetailsLoaded;
           final items = widget.course.packageItems;
 
@@ -100,8 +103,11 @@ class _CourseSubjectDetailsViewState extends State<_CourseSubjectDetailsView> {
                 pinned: true,
                 backgroundColor: const Color(0xFF335EF7),
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_forward_ios_rounded,
-                      color: Colors.white, size: 20),
+                  icon: const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                   onPressed: () => Navigator.pop(context),
                 ),
                 flexibleSpace: FlexibleSpaceBar(
@@ -130,7 +136,8 @@ class _CourseSubjectDetailsViewState extends State<_CourseSubjectDetailsView> {
                             child: SizedBox(
                               width: 72,
                               height: 72,
-                              child: widget.course.imageUrl.isNotEmpty &&
+                              child:
+                                  widget.course.imageUrl.isNotEmpty &&
                                       widget.course.imageUrl.startsWith('http')
                                   ? CachedNetworkImage(
                                       imageUrl: widget.course.imageUrl,
@@ -184,8 +191,11 @@ class _CourseSubjectDetailsViewState extends State<_CourseSubjectDetailsView> {
                       SizedBox(height: 20.sh),
                       Row(
                         children: [
-                          Icon(Icons.payments_outlined,
-                              size: 18, color: Colors.grey[600]),
+                          Icon(
+                            Icons.payments_outlined,
+                            size: 18,
+                            color: Colors.grey[600],
+                          ),
                           SizedBox(width: 6.sw),
                           Text(
                             '${widget.course.price.toStringAsFixed(0)} ج.م',
@@ -203,7 +213,10 @@ class _CourseSubjectDetailsViewState extends State<_CourseSubjectDetailsView> {
               ),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.sw, vertical: 16),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.sw,
+                    vertical: 16,
+                  ),
                   child: Column(
                     children: [
                       if (isLoading)
@@ -211,7 +224,8 @@ class _CourseSubjectDetailsViewState extends State<_CourseSubjectDetailsView> {
                           padding: EdgeInsets.all(24),
                           child: Center(
                             child: CircularProgressIndicator(
-                                color: Color(0xFF335EF7)),
+                              color: Color(0xFF335EF7),
+                            ),
                           ),
                         )
                       else if (isUnlocked || widget.course.price == 0)
@@ -227,8 +241,11 @@ class _CourseSubjectDetailsViewState extends State<_CourseSubjectDetailsView> {
                   padding: EdgeInsets.symmetric(horizontal: 24.sw),
                   child: Row(
                     children: [
-                      const Icon(Icons.menu_book_rounded,
-                          color: Color(0xFF335EF7), size: 22),
+                      const Icon(
+                        Icons.menu_book_rounded,
+                        color: Color(0xFF335EF7),
+                        size: 22,
+                      ),
                       SizedBox(width: 10.sw),
                       Text(
                         'حصص المادة',
@@ -249,15 +266,9 @@ class _CourseSubjectDetailsViewState extends State<_CourseSubjectDetailsView> {
                 SliverPadding(
                   padding: EdgeInsets.symmetric(horizontal: 20.sw),
                   sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        return _lessonRow(
-                          items[index],
-                          isUnlocked,
-                        );
-                      },
-                      childCount: items.length,
-                    ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      return _lessonRow(items[index], isUnlocked);
+                    }, childCount: items.length),
                   ),
                 ),
               SliverToBoxAdapter(child: SizedBox(height: 40.sh)),
@@ -271,8 +282,11 @@ class _CourseSubjectDetailsViewState extends State<_CourseSubjectDetailsView> {
   Widget _subjectPlaceholder() {
     return Container(
       color: const Color(0xFFE8ECF8),
-      child: const Icon(Icons.menu_book_rounded,
-          color: Color(0xFF335EF7), size: 36),
+      child: const Icon(
+        Icons.menu_book_rounded,
+        color: Color(0xFF335EF7),
+        size: 36,
+      ),
     );
   }
 
@@ -287,8 +301,11 @@ class _CourseSubjectDetailsViewState extends State<_CourseSubjectDetailsView> {
       ),
       child: Row(
         children: [
-          const Icon(Icons.check_circle_rounded,
-              color: Color(0xFF10B981), size: 28),
+          const Icon(
+            Icons.check_circle_rounded,
+            color: Color(0xFF10B981),
+            size: 28,
+          ),
           SizedBox(width: 12.sw),
           Expanded(
             child: Text(
@@ -322,10 +339,15 @@ class _CourseSubjectDetailsViewState extends State<_CourseSubjectDetailsView> {
               textAlign: TextAlign.center,
               decoration: InputDecoration(
                 hintText: 'كود تفعيل المادة',
-                hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13.spScaled),
+                hintStyle: TextStyle(
+                  color: Colors.grey[400],
+                  fontSize: 13.spScaled,
+                ),
                 border: InputBorder.none,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
               ),
             ),
           ),
@@ -374,8 +396,11 @@ class _CourseSubjectDetailsViewState extends State<_CourseSubjectDetailsView> {
         ),
         child: Column(
           children: [
-            Icon(Icons.hourglass_empty_rounded,
-                size: 40, color: Colors.grey[400]),
+            Icon(
+              Icons.hourglass_empty_rounded,
+              size: 40,
+              color: Colors.grey[400],
+            ),
             SizedBox(height: 12.sh),
             Text(
               'لا توجد حصص بعد',
@@ -459,8 +484,11 @@ class _CourseSubjectDetailsViewState extends State<_CourseSubjectDetailsView> {
                 if (locked)
                   Icon(Icons.lock_rounded, color: Colors.grey[500], size: 20)
                 else
-                  const Icon(Icons.play_circle_fill_rounded,
-                      color: Color(0xFF335EF7), size: 28),
+                  const Icon(
+                    Icons.play_circle_fill_rounded,
+                    color: Color(0xFF335EF7),
+                    size: 28,
+                  ),
               ],
             ),
           ),
@@ -472,8 +500,11 @@ class _CourseSubjectDetailsViewState extends State<_CourseSubjectDetailsView> {
   Widget _miniPlaceholder() {
     return Container(
       color: const Color(0xFFF3F4F6),
-      child: Icon(Icons.play_circle_outline_rounded,
-          color: Colors.grey[400], size: 28),
+      child: Icon(
+        Icons.play_circle_outline_rounded,
+        color: Colors.grey[400],
+        size: 28,
+      ),
     );
   }
 

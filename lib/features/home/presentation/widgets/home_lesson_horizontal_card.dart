@@ -48,7 +48,10 @@ class HomeLessonHorizontalCard extends StatelessWidget {
                 },
                 transitionsBuilder: (_, animation, __, child) {
                   return FadeTransition(
-                    opacity: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+                    opacity: CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeOutCubic,
+                    ),
                     child: child,
                   );
                 },
@@ -69,8 +72,8 @@ class HomeLessonHorizontalCard extends StatelessWidget {
                     child: SizedBox(
                       height: otv(
                         context: context,
-                        portrait: 200.sh,
-                        landscape: 240.sh,
+                        portrait: 160.sh,
+                        landscape: 200.sh,
                       ),
                       width: double.infinity,
                       child:
@@ -135,8 +138,8 @@ class HomeLessonHorizontalCard extends StatelessWidget {
                             Text(
                               lesson.isCourse == true
                                   ? (lesson.packageItems.isEmpty
-                                      ? 'مادة — لا حصص بعد'
-                                      : 'مادة (${lesson.packageItems.length} حصص)')
+                                        ? 'مادة — لا حصص بعد'
+                                        : 'مادة (${lesson.packageItems.length} حصص)')
                                   : 'باقة (${lesson.packageItems.length} حصص)',
                               style: TextStyle(
                                 fontSize: 12.spScaled,
@@ -160,7 +163,7 @@ class HomeLessonHorizontalCard extends StatelessWidget {
 
   Widget _buildCardContent(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 14.sw, vertical: 8.sh),
+      padding: EdgeInsets.symmetric(horizontal: 12.sw, vertical: 6.sh),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -168,185 +171,183 @@ class HomeLessonHorizontalCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-                        // Title and Meta
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                lesson.title,
-                                style: TextStyle(
-                                  fontSize: 16.spScaled,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF1A1D2E),
-                                  height: 1.3,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              SizedBox(height: 4.sh),
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 8.sw,
-                                  vertical: 3.sh,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFF335EF7,
-                                  ).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(6.sw),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.school_rounded,
-                                      size: 13.sw,
-                                      color: const Color(0xFF335EF7),
-                                    ),
-                                    SizedBox(width: 4.sw),
-                                    Flexible(
-                                      child: Text(
-                                        lesson.teacherName,
-                                        style: TextStyle(
-                                          fontSize: 11.spScaled,
-                                          fontWeight: FontWeight.bold,
-                                          color: const Color(0xFF335EF7),
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(width: 10.sw),
-                        // Price
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'السعر',
-                              style: TextStyle(
-                                fontSize: 10.spScaled,
-                                color: Colors.grey[500],
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            if (lesson.hasDiscount &&
-                                lesson.discountPrice != null) ...[
-                              Text(
-                                '${lesson.price.toStringAsFixed(0)} ج.م',
-                                style: TextStyle(
-                                  fontSize: 12.spScaled,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey[500],
-                                  decoration: TextDecoration.lineThrough,
-                                  height: 1.2,
-                                ),
-                              ),
-                              SizedBox(height: 2.sh),
-                            ],
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  lesson.hasDiscount &&
-                                          lesson.discountPrice != null
-                                      ? lesson.discountPrice!.toStringAsFixed(0)
-                                      : lesson.price.toStringAsFixed(0),
-                                  style: TextStyle(
-                                    fontSize: 20.spScaled,
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color(0xFFFF9800),
-                                    height: 1.2,
-                                  ),
-                                ),
-                                SizedBox(width: 3.sw),
-                                Text(
-                                  'ج.م',
-                                  style: TextStyle(
-                                    fontSize: 12.spScaled,
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color(0xFFFF9800),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4.sh),
+              // Title and Meta
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     Text(
-                      lesson.description,
+                      lesson.title,
                       style: TextStyle(
-                        fontSize: 12.spScaled,
-                        color: Colors.grey[600],
-                        height: 1.4,
+                        fontSize: 16.spScaled,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1A1D2E),
+                        height: 1.3,
                       ),
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 6.sh),
-                    const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                    SizedBox(height: 4.sh),
-
-                    // Action Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(
-                            0xFF335EF7,
-                          ).withOpacity(0.05),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.sw),
-                          ),
-                          padding: EdgeInsets.symmetric(vertical: 6.sh),
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            PageRouteBuilder(
-                              transitionDuration: const Duration(milliseconds: 350),
-                              reverseTransitionDuration: const Duration(milliseconds: 300),
-                        pageBuilder: (_, __, ___) {
-                          if (lesson.isCourse == true) {
-                            return CourseSubjectDetailsScreen(course: lesson);
-                          }
-                          if (lesson.isPackage == true) {
-                            return PackageDetailsScreen(package: lesson);
-                          }
-                          return CourseDetailsScreen(lesson: lesson);
-                        },
-                              transitionsBuilder: (_, animation, __, child) {
-                                return FadeTransition(
-                                  opacity: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-                                  child: child,
-                                );
-                              },
-                            ),
-                          );
-                        },
-                        child: Text(
-                          'عرض التفاصيل',
-                          style: TextStyle(
-                            fontSize: 13.spScaled,
+                    SizedBox(height: 3.sh),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.sw,
+                        vertical: 3.sh,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF335EF7).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6.sw),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.school_rounded,
+                            size: 13.sw,
                             color: const Color(0xFF335EF7),
-                            fontWeight: FontWeight.bold,
                           ),
-                        ),
+                          SizedBox(width: 4.sw),
+                          Flexible(
+                            child: Text(
+                              lesson.teacherName,
+                              style: TextStyle(
+                                fontSize: 11.spScaled,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF335EF7),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-          ],
-        ),
-      );
+                  ],
+                ),
+              ),
+              SizedBox(width: 10.sw),
+              // Price
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'السعر',
+                    style: TextStyle(
+                      fontSize: 10.spScaled,
+                      color: Colors.grey[500],
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (lesson.hasDiscount && lesson.discountPrice != null) ...[
+                    Text(
+                      '${lesson.price.toStringAsFixed(0)} ج.م',
+                      style: TextStyle(
+                        fontSize: 12.spScaled,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[500],
+                        decoration: TextDecoration.lineThrough,
+                        height: 1.2,
+                      ),
+                    ),
+                    SizedBox(height: 2.sh),
+                  ],
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        lesson.hasDiscount && lesson.discountPrice != null
+                            ? lesson.discountPrice!.toStringAsFixed(0)
+                            : lesson.price.toStringAsFixed(0),
+                        style: TextStyle(
+                          fontSize: 20.spScaled,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFFFF9800),
+                          height: 1.2,
+                        ),
+                      ),
+                      SizedBox(width: 3.sw),
+                      Text(
+                        'ج.م',
+                        style: TextStyle(
+                          fontSize: 12.spScaled,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFFFF9800),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: 4.sh),
+          Text(
+            lesson.description,
+            style: TextStyle(
+              fontSize: 12.spScaled,
+              color: Colors.grey[600],
+              height: 1.4,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          SizedBox(height: 4.sh),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          SizedBox(height: 3.sh),
+          // Action Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF335EF7).withOpacity(0.05),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.sw),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 5.sh),
+              ),
+              onPressed: () {
+                Navigator.of(context).push(
+                  PageRouteBuilder(
+                    transitionDuration: const Duration(milliseconds: 350),
+                    reverseTransitionDuration: const Duration(
+                      milliseconds: 300,
+                    ),
+                    pageBuilder: (_, __, ___) {
+                      if (lesson.isCourse == true) {
+                        return CourseSubjectDetailsScreen(course: lesson);
+                      }
+                      if (lesson.isPackage == true) {
+                        return PackageDetailsScreen(package: lesson);
+                      }
+                      return CourseDetailsScreen(lesson: lesson);
+                    },
+                    transitionsBuilder: (_, animation, __, child) {
+                      return FadeTransition(
+                        opacity: CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOutCubic,
+                        ),
+                        child: child,
+                      );
+                    },
+                  ),
+                );
+              },
+              child: Text(
+                'عرض التفاصيل',
+                style: TextStyle(
+                  fontSize: 13.spScaled,
+                  color: const Color(0xFF335EF7),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildPlaceholder() {

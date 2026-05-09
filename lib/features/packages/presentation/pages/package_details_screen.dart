@@ -1,11 +1,10 @@
 import 'package:alaref/features/admin/dashBoard/data/models/lesson_model.dart';
 import 'package:alaref/features/home/presentation/cubit/course_details_cubit.dart';
+import 'package:alaref/features/video_player/presentation/pages/package_item_video_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:responsive_screen_master/responsive_screen_master.dart';
-
-import 'package_item_video_screen.dart';
 
 class PackageDetailsScreen extends StatelessWidget {
   final LessonModel package;
@@ -69,7 +68,11 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
   void _showSuccessSnackBar() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(widget.package.isCourse ? '✅ تم تفعيل الكورس بنجاح!' : '✅ تم فتح الباقة بنجاح!'),
+        content: Text(
+          widget.package.isCourse
+              ? '✅ تم تفعيل الكورس بنجاح!'
+              : '✅ تم فتح الباقة بنجاح!',
+        ),
         backgroundColor: const Color(0xFF4CAF50),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -95,7 +98,9 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
       body: BlocBuilder<CourseDetailsCubit, CourseDetailsState>(
         builder: (context, state) {
           final cubit = context.read<CourseDetailsCubit>();
-          final isUnlocked = state is CourseDetailsLoaded ? state.isUnlocked : false;
+          final isUnlocked = state is CourseDetailsLoaded
+              ? state.isUnlocked
+              : false;
           final isLoading = state is! CourseDetailsLoaded;
 
           return CustomScrollView(
@@ -112,7 +117,7 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
                   ],
                 ),
               ),
-              
+
               const SliverToBoxAdapter(child: SizedBox(height: 70)),
 
               // 2. Unlock Section
@@ -150,7 +155,9 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        widget.package.isCourse ? 'محتويات الكورس' : 'محتويات الباقة',
+                        widget.package.isCourse
+                            ? 'محتويات الكورس'
+                            : 'محتويات الباقة',
                         style: TextStyle(
                           fontSize: 20.spScaled,
                           fontWeight: FontWeight.bold,
@@ -177,10 +184,16 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
               if (widget.package.packageItems.isEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24.sw, vertical: 16),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 24.sw,
+                      vertical: 16,
+                    ),
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 28,
+                        horizontal: 16,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
@@ -188,7 +201,11 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
                       ),
                       child: Column(
                         children: [
-                          Icon(Icons.inbox_outlined, size: 44, color: Colors.grey[400]),
+                          Icon(
+                            Icons.inbox_outlined,
+                            size: 44,
+                            color: Colors.grey[400],
+                          ),
                           const SizedBox(height: 12),
                           Text(
                             'لا يوجد محتوى في الباقة بعد',
@@ -208,13 +225,10 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
                 SliverPadding(
                   padding: EdgeInsets.symmetric(horizontal: 20.sw),
                   sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final item = widget.package.packageItems[index];
-                        return _buildLessonCard(item, isUnlocked);
-                      },
-                      childCount: widget.package.packageItems.length,
-                    ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final item = widget.package.packageItems[index];
+                      return _buildLessonCard(item, isUnlocked);
+                    }, childCount: widget.package.packageItems.length),
                   ),
                 ),
               SliverToBoxAdapter(child: SizedBox(height: 40.sh)),
@@ -229,23 +243,31 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
     return Container(
       width: double.infinity,
       height: 320.sh,
-      decoration: const BoxDecoration(
-        color: Color(0xFFE5E7EB),
-      ),
+      decoration: const BoxDecoration(color: Color(0xFFE5E7EB)),
       child: widget.package.imageUrl.isNotEmpty
           ? CachedNetworkImage(
               imageUrl: widget.package.imageUrl,
               fit: BoxFit.cover,
               placeholder: (context, url) => Container(
                 color: Colors.grey[200],
-                child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                child: const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
               ),
               errorWidget: (context, url, error) => Container(
                 color: Colors.grey[200],
-                child: const Icon(Icons.image_not_supported_outlined, size: 50, color: Colors.grey),
+                child: const Icon(
+                  Icons.image_not_supported_outlined,
+                  size: 50,
+                  color: Colors.grey,
+                ),
               ),
             )
-          : const Icon(Icons.inventory_2_outlined, size: 60, color: Colors.grey),
+          : const Icon(
+              Icons.inventory_2_outlined,
+              size: 60,
+              color: Colors.grey,
+            ),
     );
   }
 
@@ -262,7 +284,11 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
             shape: BoxShape.circle,
             border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
           ),
-          child: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 20),
+          child: const Icon(
+            Icons.arrow_forward_ios_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
         ),
       ),
     );
@@ -302,9 +328,17 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildInfoBadge(Icons.person_outline, widget.package.teacherName.isNotEmpty ? widget.package.teacherName : 'المعلم'),
+                _buildInfoBadge(
+                  Icons.person_outline,
+                  widget.package.teacherName.isNotEmpty
+                      ? widget.package.teacherName
+                      : 'المعلم',
+                ),
                 const SizedBox(width: 12),
-                _buildInfoBadge(Icons.payments_outlined, '${widget.package.price.toStringAsFixed(0)} EGP'),
+                _buildInfoBadge(
+                  Icons.payments_outlined,
+                  '${widget.package.price.toStringAsFixed(0)} EGP',
+                ),
               ],
             ),
           ],
@@ -352,15 +386,25 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
       decoration: BoxDecoration(
         color: const Color(0xFFECFDF5),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF10B981).withOpacity(0.2), width: 1),
+        border: Border.all(
+          color: const Color(0xFF10B981).withOpacity(0.2),
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: const BoxDecoration(color: Color(0xFF10B981), shape: BoxShape.circle),
-            child: const Icon(Icons.check_rounded, color: Colors.white, size: 24),
+            decoration: const BoxDecoration(
+              color: Color(0xFF10B981),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.check_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -368,7 +412,9 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.package.isCourse ? 'تم تفعيل الكورس' : 'تم تفعيل الباقة',
+                  widget.package.isCourse
+                      ? 'تم تفعيل الكورس'
+                      : 'تم تفعيل الباقة',
                   style: TextStyle(
                     color: const Color(0xFF065F46),
                     fontWeight: FontWeight.bold,
@@ -450,7 +496,14 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
                 ],
               ),
               child: _validating
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
                   : Text(
                       'تفعيل',
                       style: TextStyle(
@@ -493,7 +546,9 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
               Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
                     child: Container(
                       height: 180.sh,
                       width: double.infinity,
@@ -502,10 +557,22 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
                           ? CachedNetworkImage(
                               imageUrl: item.imageUrl,
                               fit: BoxFit.cover,
-                              placeholder: (context, url) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                              errorWidget: (context, url, error) => const Icon(Icons.play_circle_fill_rounded, size: 50, color: Colors.grey),
+                              placeholder: (context, url) => const Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => const Icon(
+                                Icons.play_circle_fill_rounded,
+                                size: 50,
+                                color: Colors.grey,
+                              ),
                             )
-                          : const Icon(Icons.play_circle_fill_rounded, size: 50, color: Colors.grey),
+                          : const Icon(
+                              Icons.play_circle_fill_rounded,
+                              size: 50,
+                              color: Colors.grey,
+                            ),
                     ),
                   ),
                   _buildLockIcon(isUnlocked),
@@ -532,11 +599,19 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.access_time_rounded, size: 14, color: Colors.grey[400]),
+                        Icon(
+                          Icons.access_time_rounded,
+                          size: 14,
+                          color: Colors.grey[400],
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           'درس فيديو',
-                          style: TextStyle(fontSize: 12.spScaled, color: Colors.grey[500], fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 12.spScaled,
+                            color: Colors.grey[500],
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -570,7 +645,11 @@ class _PackageDetailsViewState extends State<_PackageDetailsView> {
     if (!isUnlocked && widget.package.price > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(widget.package.isCourse ? 'يجب تفعيل الكورس بالكود أولاً' : 'يجب تفعيل الباقة بالكود أولاً'),
+          content: Text(
+            widget.package.isCourse
+                ? 'يجب تفعيل الكورس بالكود أولاً'
+                : 'يجب تفعيل الباقة بالكود أولاً',
+          ),
           backgroundColor: Colors.orange,
         ),
       );
